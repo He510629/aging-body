@@ -1,0 +1,8 @@
+__pycache__/
+*.pptx
+*.tmp
+cases_snippet.txt
+extracted_content.txt
+temp.js
+.system_generated/
+.gemini/

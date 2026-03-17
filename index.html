@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高龄身体建筑师 - 人体形态学互动游戏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Dashboard / Navigation -->
+        <nav class="glass-nav">
+            <div class="logo">
+                <span class="icon">🧬</span>
+                <h1>高龄身体建筑师</h1>
+            </div>
+            <ul class="nav-links">
+                <li><button class="nav-btn active" data-target="home">主控台</button></li>
+                <li><button class="nav-btn" data-target="classify">骨骼分类实验室</button></li>
+                <li><button class="nav-btn" data-target="aging">时光模拟器</button></li>
+                <li><button class="nav-btn" data-target="clinic">临床侦探</button></li>
+            </ul>
+        </nav>
+
+        <main class="content-area">
+            <!-- Home Section -->
+            <section id="home" class="view-section active">
+                <div class="hero">
+                    <h2>人体是一座精密的建筑</h2>
+                    <p>成为更懂老人、更专业的管理者和服务者。</p>
+                    <div class="hero-stats">
+                        <div class="stat-card">
+                            <h3>206 块</h3>
+                            <p>成人骨骼总数</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>4 种</h3>
+                            <p>基本骨骼形态</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>3 大</h3>
+                            <p>临床常见老化骨骼病变</p>
+                        </div>
+                    </div>
+                    <button class="primary-btn pulse" onclick="app.switchView('classify')">开启探索之旅</button>
+                </div>
+            </section>
+
+            <!-- Classification Game -->
+            <section id="classify" class="view-section">
+                <header class="section-header">
+                    <h2>骨骼分类实验室</h2>
+                    <p>骨骼按照形态可分为四类，请将右侧的"积木"拖拽到对应的容器中。</p>
+                </header>
+                <div class="game-container classify-grid">
+                    <div class="drop-zones">
+                        <div class="zone glass-panel" data-type="长骨">
+                            <h3>长骨 (A.灵活积木)</h3>
+                            <p class="desc">呈长管状，一体两端 (如尺骨、掌骨)</p>
+                            <div class="items-container"></div>
+                        </div>
+                        <div class="zone glass-panel" data-type="短骨">
+                            <h3>短骨 (B.承重柱)</h3>
+                            <p class="desc">立方形，成群分布 (如腕骨、跗骨)</p>
+                            <div class="items-container"></div>
+                        </div>
+                        <div class="zone glass-panel" data-type="扁骨">
+                            <h3>扁骨 (D.盾牌)</h3>
+                            <p class="desc">呈板状，参与构成骨性腔隙 (如颅骨、胸骨)</p>
+                            <div class="items-container"></div>
+                        </div>
+                        <div class="zone glass-panel" data-type="不规则骨">
+                            <h3>不规则骨 (C.异形件)</h3>
+                            <p class="desc">形状不规则 (如椎骨、蝶骨)</p>
+                            <div class="items-container"></div>
+                        </div>
+                    </div>
+                    <div class="drag-items glass-panel">
+                        <h3>待分类零件</h3>
+                        <div class="draggable-pool" id="draggable-pool">
+                            <!-- Items inserted by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aging Simulator -->
+            <section id="aging" class="view-section">
+                <header class="section-header">
+                    <h2>时光模拟器：骨骼老化演变</h2>
+                    <p>拖动时间轴，观察随着年龄增长，人体骨骼发生的结构性改变及其临床影响。</p>
+                </header>
+                <div class="game-container aging-layout">
+                    <div class="visualizer glass-panel">
+                        <div class="skeleton-display">
+                            <!-- Side-by-Side Comparison -->
+                            <div class="comparison-container">
+                                <div class="young-view">
+                                    <h4>青年期 (25岁)</h4>
+                                    <img id="skeleton-img-young" src="young_skeleton_clean.png" alt="Young Skeleton">
+                                </div>
+                                <div class="elderly-view" id="elderly-view">
+                                    <h4>老年期 (85岁)</h4>
+                                    <div class="elderly-stack">
+                                        <img id="skeleton-img-old" src="elderly_skeleton_clean.png" alt="Elderly Skeleton">
+                                        <img id="posture-img-old" src="elderly_posture_clean.png" alt="Elderly Posture Overlay">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-container small-stack-container">
+                                <div class="young-view">
+                                    <h4>致密骨组织</h4>
+                                    <img id="density-img-young" src="bone_density_young_clean.png" alt="Young Bone Density">
+                                </div>
+                                <div class="elderly-view" id="elderly-view-density">
+                                    <h4>疏松骨组织</h4>
+                                    <img id="density-img-old" src="bone_density_old_clean.png" alt="Old Bone Density">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="control-panel">
+                            <label for="age-slider">年龄推移: <span id="age-display">25</span> 岁</label>
+                            <input type="range" id="age-slider" min="25" max="85" value="25" step="5">
+                        </div>
+                    </div>
+                    <div class="analysis-panel glass-panel">
+                        <div class="info-card" id="density-info">
+                            <h3>结构改变：无机质/有机质比例失衡</h3>
+                            <p>25岁时，骨骼致密，富有弹性。</p>
+                            <ul class="symptoms">
+                                <li>骨密度极佳</li>
+                                <li>韧性强，抗冲击</li>
+                            </ul>
+                        </div>
+                        <div class="info-card" id="spine-info">
+                            <h3>体态与脊柱变化</h3>
+                            <p>椎体形态正常，序列挺拔。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Clinical Clinic Quiz -->
+            <section id="clinic" class="view-section">
+                <header class="section-header">
+                    <h2>临床小侦探</h2>
+                    <p>结合所学解剖学知识，判断老年人的症状原因，成为专业的指导者。</p>
+                </header>
+                <div class="game-container clinic-layout">
+                    <div class="case-file glass-panel">
+                        <h3 id="case-title">正在加载案例...</h3>
+                        <div class="case-desc" id="case-description"></div>
+                    </div>
+                    <div class="options-panel" id="quiz-options">
+                        <!-- Options injected by JS -->
+                    </div>
+                    <div class="feedback-panel" id="quiz-feedback" style="display: none;"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals & overlays -->
+    <div id="toast" class="toast"></div>
+
+    <script src="game.js"></script>
+</body>
+</html>
