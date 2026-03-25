@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>肌肉侦探 - 老年骨骼肌与运动守护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f7f9fc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(31, 38, 135, 0.08);
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+        }
+        .tab-content { display: none; }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .quiz-option { transition: all 0.3s ease; }
+        .quiz-option.selected { border-color: #4ECDC4; background-color: #e6f9f7; }
+        .quiz-option.correct { border-color: #4CAF50; background-color: #E8F5E9; color: #2E7D32; }
+        .quiz-option.incorrect { border-color: #F44336; background-color: #FFEBEE; color: #C62828; }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* -------------- 解剖学肌肉收缩舒张动画 -------------- */
+        
+        /* 核心逻辑：用一个半透明的红色形状层叠在图上，模拟肌肉肌腹。
+           收缩(Concentric contraction)时：肌肉变短、变粗(膨胀)。
+           舒张(Relaxation)时：恢复原状。 */
+
+        .anatomy-muscle {
+            position: absolute;
+            background: rgba(255, 60, 60, 0);
+            border: 2px solid transparent;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            --rot: rotate(0deg); /* 控制每一块肌肉的倾斜角度 */
+            /* 添加网格纹理模拟肌纤维 */
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px);
+        }
+
+        /* 主收缩动画：肌束缩短、膨胀充血 */
+        @keyframes muscle-pump {
+            0% { transform: translate(-50%, -50%) var(--rot) scale(1); opacity: 0; background-color: rgba(255, 60, 60, 0); }
+            15% { opacity: 1; border-color: rgba(255, 255, 255, 0.9); background-color: rgba(255, 60, 60, 0.5); }
+            50% { 
+                /* X轴变粗，Y轴变短，结合对应的基础旋转角度，模拟真实的肌肉向心收缩 */
+                transform: translate(-50%, -50%) var(--rot) scaleX(1.4) scaleY(0.75); 
+                background-color: rgba(255, 40, 40, 0.8);
+                box-shadow: 0 0 25px rgba(255, 0, 0, 0.6);
+            }
+            85% { opacity: 1; border-color: rgba(255, 255, 255, 0.9); background-color: rgba(255, 60, 60, 0.5); }
+            100% { transform: translate(-50%, -50%) var(--rot) scale(1); opacity: 0; background-color: rgba(255, 60, 60, 0); }
+        }
+
+        .is-animating .anatomy-muscle {
+            animation: muscle-pump 1.5s ease-in-out infinite;
+        }
+
+        /* 针对不同部位的具体肌肉形状与定位 (适配图片内人物的常见身位) */
+        
+        /* 1. 肱二头肌 (手臂前侧，略微倾斜)，靠左上 */
+        .muscle-bicep { --rot: rotate(-25deg); top: 35%; left: 42%; width: 35px; height: 80px; border-radius: 50%; }
+        /* 1. 肱三头肌 (手臂后侧，与二头肌平行)，靠右下 */
+        .muscle-tricep { --rot: rotate(-25deg); top: 48%; left: 55%; width: 30px; height: 90px; border-radius: 50%; }
+        
+        /* 2. 股四头肌 (大腿前侧，大面积水滴形)，居中偏上 */
+        .muscle-quad { --rot: rotate(0deg); top: 45%; left: 50%; width: 80px; height: 130px; border-radius: 40% 40% 60% 60%; }
+        
+        /* 3. 腓肠肌 (小腿肚后侧圆润水滴形)，居中偏后偏下 */
+        .muscle-calf { --rot: rotate(-10deg); top: 60%; left: 53%; width: 65px; height: 100px; border-radius: 50% 50% 30% 30%; }
+        
+        /* 4. 腹直肌 (躯干正中心长条方块形) */
+        .muscle-abs { --rot: rotate(0deg); top: 45%; left: 50%; width: 80px; height: 120px; border-radius: 15px; }
+
+        /* 发力提示字 */
+        .contraction-text {
+            position: absolute; top: 15%; left: 50%; transform: translate(-50%, -50%);
+            background: #FF4757; color: white; padding: 6px 14px; border-radius: 20px;
+            font-size: 14px; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 71, 87, 0.5);
+            white-space: nowrap; z-index: 30;
+            border: 2px solid white;
+        }
+        .is-animating .contraction-text { opacity: 1; top: 20%; }
+
+        /* 背景压暗凸出肌肉层 */
+        .dark-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+            opacity: 0; transition: opacity 0.4s; z-index: 10;
+        }
+        .is-animating .dark-overlay { opacity: 1; }
+
+    </style>
+</head>
+<body class="text-gray-800 antialiased pb-20">
+
+    <header class="bg-gradient-primary rounded-b-[40px] p-6 pt-10 shadow-lg relative overflow-hidden">
+        <div class="relative z-10 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">肌肉侦探 🕵️‍♂️</h1>
+                <p class="text-gray-700 text-sm font-medium">寻找身体动力源，守护长者健康行</p>
+            </div>
+            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
+                <span class="text-2xl">💪</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="flex justify-around bg-white mx-4 mt-6 rounded-2xl shadow-sm p-1 z-30 relative">
+        <button onclick="switchTab('activity')" class="tab-btn active w-1/3 py-3 text-sm font-bold text-[#FF6B6B] bg-gray-50 rounded-xl transition-colors" id="btn-activity">课堂活动</button>
+        <button onclick="switchTab('cases')" class="tab-btn w-1/3 py-3 text-sm font-bold text-gray-500 rounded-xl transition-colors" id="btn-cases">案例变化</button>
+        <button onclick="switchTab('quiz')" class="tab-btn w-1/3 py-3 text-sm font-bold text-gray-500 rounded-xl transition-colors" id="btn-quiz">随堂测试</button>
+    </nav>
+
+    <main class="mt-6 px-4">
+        
+        <!-- Tab 1: 课堂活动 -->
+        <section id="activity" class="tab-content active">
+            <div class="mb-4 text-center">
+                <span class="text-xs font-bold bg-[#ffe0e0] text-[#FF6B6B] px-3 py-1 rounded-full uppercase tracking-wide shadow-sm">左右滑动卡片，完成 4 个侦探任务 👉</span>
+            </div>
+
+            <div class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-4">
+                
+                <!-- Slide 1: 上臂 -->
+                <div class="snap-center shrink-0 w-[90vw] glass-card rounded-3xl overflow-hidden relative border-t-4 border-[#FF6B6B]">
+                    <!-- Interactive Animation Area -->
+                    <div id="anim-area-1" class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <img src="assets/elderly_care_exercise_1774405343860.png" class="absolute inset-0 w-full h-full object-cover opacity-60" alt="运动图">
+                        <div class="dark-overlay"></div>
+                        
+                        <!-- 真实的肌肉收缩模拟图层 -->
+                        <div class="anatomy-muscle muscle-bicep"></div>
+                        <div class="anatomy-muscle muscle-tricep" style="animation-delay: 0.75s;"></div> <!-- 三头肌交替收缩 -->
+                        
+                        <!-- 静态标签 -->
+                        <div class="absolute top-[20%] left-[35%] transform -translate-x-1/2 -translate-y-1/2 z-20">
+                            <div class="text-[10px] font-bold text-gray-800 bg-white/95 px-1.5 py-0.5 rounded shadow">肱二头肌</div>
+                        </div>
+                        <div class="absolute top-[25%] left-[65%] transform -translate-x-1/2 -translate-y-1/2 z-20">
+                            <div class="text-[10px] font-bold text-gray-800 bg-white/95 px-1.5 py-0.5 rounded shadow">肱三头肌</div>
+                        </div>
+
+                        <div class="contraction-text">⚡ 变粗！变短！肌肉收缩中！</div>
+                        
+                        <!-- PLAY BUTTON -->
+                        <button onclick="playMuscleAnim('anim-area-1', this)" class="absolute bottom-3 right-3 bg-white hover:bg-[#FF6B6B] hover:text-white text-[#FF6B6B] border border-[#FF6B6B] px-3 py-1.5 rounded-full text-[13px] font-bold shadow-lg transition-all flex items-center gap-1 cursor-pointer z-30">
+                            ▶ 显示肌肉收缩
+                        </button>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xl font-bold">步骤 1：上臂核心</h2>
+                            <span class="text-xs font-bold text-white bg-[#FF6B6B] px-2 py-1 rounded-lg">1 / 4</span>
+                        </div>
+                        <div class="bg-[#FFF4F4] border border-[#FFE0E0] p-3 rounded-xl mb-3 shadow-sm">
+                            <h3 class="font-bold text-[#FF6B6B] text-sm mb-1">📢 观察要点：</h3>
+                            <p class="text-[13px] text-gray-700 font-medium leading-relaxed">请通过动画观察，当手臂弯曲时，前侧的<strong class="text-red-500">肱二头肌会变短、变粗（向心收缩）</strong>发生膨胀隆起。</p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">👴</span>
+                            <div>
+                                <div class="text-[13px] font-bold text-gray-800">长者痛点</div>
+                                <p class="text-[12px] text-[#d9534f]">力量不足会导致老人想用手撑轮椅扶手站起来时使不上劲，甚至吃饭掉筷子。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: 大腿 -->
+                <div class="snap-center shrink-0 w-[90vw] glass-card rounded-3xl overflow-hidden relative border-t-4 border-[#4ECDC4]">
+                    <div id="anim-area-2" class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <img src="assets/leg_extension_muscle_1774407381073.png" class="absolute inset-0 w-full h-full object-cover opacity-80" alt="下肢" onerror="this.src='https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'">
+                        <div class="dark-overlay"></div>
+                        
+                        <!-- 股四头肌收缩模拟图层 -->
+                        <div class="anatomy-muscle muscle-quad"></div>
+                        
+                        <div class="absolute top-[25%] left-1/2 transform -translate-x-1/2 z-20">
+                            <div class="text-[11px] font-bold text-gray-800 bg-white/95 px-2 py-0.5 rounded shadow">股四头肌 (大腿前侧)</div>
+                        </div>
+
+                        <div class="contraction-text">⚡ 伸膝发力！大腿肌肉紧绷膨胀</div>
+                        
+                        <button onclick="playMuscleAnim('anim-area-2', this)" class="absolute bottom-3 right-3 bg-white hover:bg-[#4ECDC4] hover:text-white text-[#00897B] border border-[#4ECDC4] px-3 py-1.5 rounded-full text-[13px] font-bold shadow-lg transition-all flex items-center gap-1 cursor-pointer z-30">
+                            ▶ 显示肌肉收缩
+                        </button>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xl font-bold">步骤 2：防跌倒主力军</h2>
+                            <span class="text-xs font-bold text-white bg-[#4ECDC4] px-2 py-1 rounded-lg">2 / 4</span>
+                        </div>
+                        <div class="bg-[#E6F9F7] border border-[#B2DFDB] p-3 rounded-xl mb-3 shadow-sm">
+                            <h3 class="font-bold text-[#00897B] text-sm mb-1">📢 观察要点：</h3>
+                            <p class="text-[13px] text-gray-700 font-medium leading-relaxed">站起时，大腿前侧（<strong class="text-[#00897B]">股四头肌</strong>）发生剧烈的收缩，肌纤维变粗，提供对抗重力的核心力量。</p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">👵</span>
+                            <div>
+                                <div class="text-[13px] font-bold text-gray-800">长者痛点</div>
+                                <p class="text-[12px] text-[#d9534f]">萎缩后，老人从低矮沙发上站起极其困难，下楼梯离心收缩力不住，极易跌倒。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3: 小腿 -->
+                <div class="snap-center shrink-0 w-[90vw] glass-card rounded-3xl overflow-hidden relative border-t-4 border-[#FFB74D]">
+                    <div id="anim-area-3" class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <img src="assets/calf_raise_muscle_1774407420681.png" class="absolute inset-0 w-full h-full object-cover opacity-80" alt="小腿" onerror="this.src='https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80'">
+                        <div class="dark-overlay"></div>
+                        
+                        <!-- 小腿排肠肌收缩模拟图层 -->
+                        <div class="anatomy-muscle muscle-calf"></div>
+                        
+                        <div class="absolute top-[35%] left-1/2 transform -translate-x-1/2 z-20">
+                            <div class="text-[11px] font-bold text-gray-800 bg-white/95 px-2 py-0.5 rounded shadow whitespace-nowrap">小腿后侧群 (腓肠肌)</div>
+                        </div>
+
+                        <div class="contraction-text">⚡ 踮脚！像弹簧一样压缩变硬</div>
+
+                        <button onclick="playMuscleAnim('anim-area-3', this)" class="absolute bottom-3 right-3 bg-white hover:bg-[#FFB74D] hover:text-white text-[#F57C00] border border-[#FFB74D] px-3 py-1.5 rounded-full text-[13px] font-bold shadow-lg transition-all flex items-center gap-1 cursor-pointer z-30">
+                            ▶ 显示肌肉收缩
+                        </button>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xl font-bold">步骤 3：平衡稳定器</h2>
+                            <span class="text-xs font-bold text-white bg-[#FFB74D] px-2 py-1 rounded-lg">3 / 4</span>
+                        </div>
+                        <div class="bg-[#FFF8E1] border border-[#FFECB3] p-3 rounded-xl mb-3 shadow-sm">
+                            <h3 class="font-bold text-[#F57C00] text-sm mb-1">📢 观察要点：</h3>
+                            <p class="text-[13px] text-gray-700 font-medium leading-relaxed">当我们踮起脚尖，小腿后侧肌肉像弹弓一样<strong class="text-[#F57C00]">收缩变紧、形态变粗短</strong>，拉动足背离地。</p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">👴</span>
+                            <div>
+                                <div class="text-[13px] font-bold text-gray-800">长者痛点</div>
+                                <p class="text-[12px] text-[#d9534f]">抬脚尖的肌肉无力会导致老人走路“拖地步态”，遇到坎坷极易因为抬脚不够高被绊摔。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4: 躯干核心 -->
+                <div class="snap-center shrink-0 w-[90vw] glass-card rounded-3xl overflow-hidden relative border-t-4 border-[#9575CD]">
+                    <div id="anim-area-4" class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <img src="assets/aging_muscle_diagram_1774405362777.png" class="absolute inset-0 w-full h-full object-cover opacity-80" alt="核心" onerror="this.src='https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'">
+                        <div class="dark-overlay"></div>
+                        
+                        <!-- 腹直肌收缩模拟图层 -->
+                        <div class="anatomy-muscle muscle-abs"></div>
+                        
+                        <div class="absolute top-[25%] left-1/2 transform -translate-x-1/2 z-20">
+                            <div class="text-[11px] font-bold text-gray-800 bg-white/95 px-2 py-0.5 rounded shadow">腹面肌群 (腹直肌)</div>
+                        </div>
+
+                        <div class="contraction-text">⚡ 紧绷挤压！像拉紧束腰带</div>
+
+                        <button onclick="playMuscleAnim('anim-area-4', this)" class="absolute bottom-3 right-3 bg-white hover:bg-[#9575CD] hover:text-white text-[#7B1FA2] border border-[#9575CD] px-3 py-1.5 rounded-full text-[13px] font-bold shadow-lg transition-all flex items-center gap-1 cursor-pointer z-30">
+                            ▶ 显示肌肉收缩
+                        </button>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xl font-bold">步骤 4：体态支撑柱</h2>
+                            <span class="text-xs font-bold text-white bg-[#9575CD] px-2 py-1 rounded-lg">4 / 4</span>
+                        </div>
+                        <div class="bg-[#F3E5F5] border border-[#E1BEE7] p-3 rounded-xl mb-3 shadow-sm">
+                            <h3 class="font-bold text-[#7B1FA2] text-sm mb-1">📢 观察要点：</h3>
+                            <p class="text-[13px] text-gray-700 font-medium leading-relaxed">核心部位的肌肉收缩就像拉紧了自带的天然“<strong class="text-[#7B1FA2]">肌肉束腰带</strong>”，挤压收紧并包裹住腰椎。</p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">👵</span>
+                            <div>
+                                <div class="text-[13px] font-bold text-gray-800">长者核心退化</div>
+                                <p class="text-[12px] text-[#d9534f]">一旦这部分力量衰退，就会出现严重的含胸、驼背，以及连绵不断的慢性腰部酸痛。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Tab 2: 案例变化 -->
+        <section id="cases" class="tab-content">
+            <div class="glass-card rounded-3xl overflow-hidden mb-6 border-l-4 border-[#FF6B6B] shadow-sm">
+                <div class="relative h-48">
+                    <img src="assets/leg_extension_muscle_1774407381073.png" class="w-full h-full object-cover object-top" alt="王爷爷" onerror="this.src='https://images.unsplash.com/photo-1516302752625-fcc3c50ae61f?auto=format&fit=crop&w=800&q=80'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                        <h2 class="text-xl font-bold text-white tracking-wide">案例一：王爷爷的“腿软”危机</h2>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <p class="text-[13px] text-gray-700 leading-relaxed mb-4 italic border-l-2 border-gray-300 pl-3">“我最近总是感觉腿脚发软...坐在比较矮的沙发上，如果不扶东西、不让人拉一把，我根本站不起来。感觉大腿前侧很空，使不上劲。” —— 76岁 王爷爷</p>
+                    <div class="bg-red-50 p-4 rounded-xl text-[13px] mb-2 shadow-inner">
+                        <div class="flex items-center mb-2">
+                            <span class="text-lg mr-2">🔍</span> 
+                            <strong class="text-red-800 text-[14px]">侦探洞察：</strong>
+                        </div>
+                        <ul class="list-disc pl-5 space-y-2 text-red-900 font-medium">
+                            <li>起立困难说明下肢大肌群（抗重力肌）出现严重退化。</li>
+                            <li>大腿前侧的 <span class="bg-red-200 px-1 rounded underline">股四头肌</span> 和臀部 <span class="bg-red-200 px-1 rounded underline">臀大肌</span> 严重萎缩，无法提供有效的向心收缩力量。</li>
+                            <li>这是引发致命跌倒的极高危信号。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl overflow-hidden mb-6 border-l-4 border-[#4ECDC4] shadow-sm">
+                <div class="relative h-48">
+                    <img src="assets/case2_fatigue_1774407439463.png" class="w-full h-full object-cover object-center" alt="张奶奶" onerror="this.src='https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                        <h2 class="text-xl font-bold text-white tracking-wide">案例二：张奶奶的“虚胖”秘密</h2>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <p class="text-[13px] text-gray-700 leading-relaxed mb-4 italic border-l-2 border-gray-300 pl-3">“别人看我腿也不细啊，怎么干点活就累？刚才连广口瓶盖都打不开了，拧毛巾也拧不干水，感觉老了真没用了。” —— 72岁 张奶奶</p>
+                    <div class="bg-[#E6F9F7] p-4 rounded-xl text-[13px] shadow-inner">
+                        <div class="flex items-center mb-2">
+                            <span class="text-lg mr-2">🔬</span> 
+                            <strong class="text-[#00796B] text-[14px]">肌少症微观变化：</strong>
+                        </div>
+                        <div class="mb-3 flex justify-center">
+                            <img src="assets/aging_muscle_diagram_1774405362777.png" class="h-24 rounded-lg shadow-sm w-full object-cover" alt="肌肉退化对比">
+                        </div>
+                        <ul class="list-disc pl-5 space-y-2 text-[#00695C] font-medium">
+                            <li><strong>脂肪浸润：</strong> 肌肉纤维间隙充斥大量脂肪（类似大理石花纹），导致腿看起来粗，但发力单位变少。</li>
+                            <li><strong>快缩肌纤维流失：</strong> 负责爆发收缩的快缩肌纤维优先流失，导致动作迟缓（握力急剧下降），极易跌倒。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: 随堂测试 -->
+        <section id="quiz" class="tab-content">
+            <div class="glass-card rounded-3xl p-6 mb-6">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold">15题大闯关 🎯</h2>
+                    <div class="flex flex-col items-end">
+                        <span class="text-lg font-bold text-white bg-gradient-to-r from-[#FF6B6B] to-[#4ECDC4] px-4 py-1 rounded-full shadow-sm" id="score-display">0 / 15</span>
+                    </div>
+                </div>
+                <div id="quiz-container" class="space-y-4 pt-4"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-[#FF6B6B]', 'bg-gray-50');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById(tabId).classList.add('active');
+            let activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.remove('text-gray-500');
+            activeBtn.classList.add('text-[#FF6B6B]', 'bg-gray-50');
+        }
+
+        // --- 解剖学可视化：模拟真正肌肉“变粗变短”的向心收缩效果 ---
+        function playMuscleAnim(areaId, btnEl) {
+            const animArea = document.getElementById(areaId);
+            const originalBtnHtml = btnEl.innerHTML;
+            
+            // 防抖
+            if (animArea.classList.contains('is-animating')) return;
+
+            // 1. 改变按钮状态
+            btnEl.innerHTML = `🔄 播放动画中...`;
+            btnEl.classList.add('opacity-80', 'pointer-events-none', 'bg-gray-200', 'text-gray-600', 'border-gray-200');
+            btnEl.classList.remove('text-[#FF6B6B]', 'text-[#00897B]', 'text-[#F57C00]', 'text-[#7B1FA2]', 'bg-white');
+            
+            // 2. 添加动画类，开始：图层变暗 -> 浮现实体肌肉色块 -> 色块变短变粗发红光
+            animArea.classList.add('is-animating');
+
+            // 3. 3.5秒后结束：肌肉恢复细长形状并消失
+            setTimeout(() => {
+                animArea.classList.remove('is-animating');
+                btnEl.innerHTML = originalBtnHtml;
+                btnEl.className = btnEl.className.replace('bg-gray-200 text-gray-600 border-gray-200', '');
+                btnEl.classList.remove('opacity-80', 'pointer-events-none');
+                btnEl.classList.add('bg-white');
+            }, 3500);
+        }
+
+        // Quiz Logic
+        const quizData = [
+            { q: "1. 随着年龄增长，老年人最容易流失、且对预防跌倒至关重要的骨骼肌主要集中在哪个部位？", options: ["上肢", "下肢", "颈部", "面部"], answer: 1, explanation: "下肢肌肉（如股四头肌、小腿三头肌）承载全身重量并维持平衡，老年人下肢肌肉流失最为明显且危险。" },
+            { q: "2. 在“肌肉侦探”活动中，若发现王爷爷从较低的沙发上起立非常困难，这主要与哪块肌肉力量严重减弱有关？", options: ["肱二头肌", "背阔肌", "股四头肌", "腹外斜肌"], answer: 2, explanation: "股四头肌（大腿前侧）的主要功能是在起立、上楼梯时伸直膝关节，被称为抗重力肌。" },
+            { q: "3. 张爷爷平时走路总喜欢“拖着脚走”，极易被地毯边缘绊倒。这通常是因为负责向上抬起脚尖的哪部分肌肉群无力？", options: ["小腿前侧肌群 (如胫骨前肌)", "大腿后侧肌群 (如股二头肌)", "臀大肌", "胸大肌"], answer: 0, explanation: "小腿前侧肌肉负责足背屈（抬脚尖），力量下降会导致走路时下脚无力、拖沓，增加绊倒风险。" },
+            { q: "4. 老年人经常出现“含胸驼背”的体态改变，除了骨骼退化外，主要是因为哪部分肌肉萎缩无力，无法对抗重力将身体拉直？", options: ["腹部肌肉 (腹直肌)", "大腿前侧 (股四头肌)", "背部核心维持肌群 (如竖脊肌等)", "肩部肌群 (三角肌)"], answer: 2, explanation: "背部肌肉负责使脊柱后伸和维持直立姿势，力量衰退会导致脊柱越来越向前弯曲而驼背。" },
+            { q: "5. 股二头肌在下肢运动中起重要作用。如果一位长者的股二头肌和臀部肌群力量不足，他在进行哪项活动时最容易感到控制不住身体？", options: ["躺在床上翻身", "下楼梯或下坡", "伸手拿高处物品", "平地缓慢行走"], answer: 1, explanation: "下楼梯和下坡需要大腿后侧肌群做“离心收缩”来控制身体下降的速度，这部分肌肉无力极易导致下楼时腿软摔倒。" },
+            { q: "6. 腓肠肌/比目鱼肌（小腿后侧肌肉）在日常生活中最重要的作用是什么？", options: ["弯曲手臂", "挺直腰板", "保持站立平衡和蹬地发力", "转动头部"], answer: 2, explanation: "这部分肌肉负责足跖屈（踮脚尖），在人类直立行走蹬地发力以及拉住身体防前倒中发挥核心作用。" },
+            { q: "7. 在照护需要使用轮椅的半失能长者时，鼓励长者锻炼上臂的肱三头肌，主要目的是为了改善哪项能力？", options: ["梳头", "使用筷子吃饭", "用手撑住轮椅扶手调整坐姿或辅助站起", "扣衣服扣子"], answer: 2, explanation: "肱三头肌负责伸直手臂，长者在撑扶手起身或转移体位时都需要强大的臂部伸展力量。" },
+            { q: "8. 所谓的“老年性肌少症”（Sarcopenia），除了骨骼肌质量减少外，还强调哪两项指标的显著下降？", options: ["肌肉体积和水分", "肌肉力量和身体功能（如步速）", "肌肉弹性与颜色", "骨密度与关节滑液"], answer: 1, explanation: "肌少症的诊断不仅看肌肉量，更重要的是评估肌肉力量（如握力）和身体功能表现（如日常走路速度）。" },
+            { q: "9. 指导老年人感受腹部肌肉时，应告知老年人保持一定腹肌力量主要是为了什么？", options: ["拥有肌肉线条", "增加消化液分泌", "维持躯干核心稳定，保护腰椎预防腰痛", "促进心脏跳动"], answer: 2, explanation: "腹肌与背肌共同构成身体核心，像“束腰带”一样稳定脊椎，核心无力是导致长者慢性腰痛的重要原因。" },
+            { q: "10. 张奶奶抱怨手拧不干毛巾，打开广口的瓶盖也感觉费力。这反映了前臂肌肉功能退化，平时常用来典型评估该退化的指标是？", options: ["肺活量", "皮褶厚度", "握力", "握拳速度"], answer: 2, explanation: "握力是评估全身上下肢整体肌肉力量非常简便且有效的金标准指标。" },
+            { q: "11. 随着衰老，老年人体内肌肉不仅变细，还会被哪种组织逐渐浸润替代，导致所谓的“中看不中用”？", options: ["结缔组织", "脂肪组织", "淋巴组织", "软骨组织"], answer: 1, explanation: "肌内脂肪浸润（像雪花肉一样）是骨骼肌老化的典型微观特征，导致肌肉力量大幅下降。" },
+            { q: "12. 衰老过程中，哪种类型的肌肉纤维流失比例最高，导致老人遇到滑倒等突发情况时来不及迅速反应？", options: ["负责耐力的慢肌纤维", "负责爆发力和快速反应的快肌纤维", "心肌纤维", "平滑肌纤维"], answer: 1, explanation: "Ⅱ型快缩肌纤维萎缩最快且最严重，是导致老年人跌倒反应不及时的主要原因。" },
+            { q: "13. 为防止老人跌倒，以下哪项在居家环境中最能起到防护又顺应肌肉功能退化的作用？", options: ["要求老人必须小步快走", "在马桶旁和走廊安装坚固的扶手（利用上肢助力）", "将所有椅子换成没有靠背的软沙发", "要求老人绝对静养不运动"], answer: 1, explanation: "既然下肢肌力退化，合理利用环境评估和辅具（扶手）利用上肢力量代偿，是跌倒预防的关键。" },
+            { q: "14. 以下哪种活动属于有效安全的老年人“抗阻”肌肉锻炼？", options: ["每天快跑五公里", "坐姿缓慢抗阻抬平小腿并保持3秒", "身体用力剧烈扭转", "广场舞连续跳2小时"], answer: 1, explanation: "老年人关节脆弱，抗阻运动应当缓慢受控，坐姿抬腿即可有效锻炼股四头肌。" },
+            { q: "15. 养老服务人员在社区要快速评估无病史老人下肢肌肉能力的简单方法是？", options: ["核磁共振", "抽血化验肌酸激酶", "5次椅子起立测试 / 步速计时测试", "心电图测试"], answer: 2, explanation: "椅子起立和步速测试是社区中最常用、安全、客观衡量下肢肌力和肌少症的临床手段。" }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const quizContainer = document.getElementById('quiz-container');
+        const scoreDisplay = document.getElementById('score-display');
+
+        quizData.forEach((item, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'quiz-question border border-gray-100 p-4 rounded-2xl bg-white shadow-sm';
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `<button class="quiz-option w-full text-left p-3 mt-2 rounded-xl border border-gray-200 text-[13px] font-medium hover:bg-gray-50 bg-white" 
+                                onclick="handleAnswer(${index}, ${optIndex}, this)">${String.fromCharCode(65 + optIndex)}. ${opt}</button>`;
+            });
+
+            qDiv.innerHTML = `
+                <div class="flex items-start">
+                    <span class="text-[#FF6B6B] font-bold mr-2 text-sm mt-0.5">Q${index+1}</span>
+                    <h3 class="font-bold text-gray-800 text-sm leading-snug">${item.q.replace(/^\d+\.\s*/, '')}</h3>
+                </div>
+                <div class="mt-2" id="options-${index}">${optionsHtml}</div>
+                <div class="hidden mt-4 p-3 bg-gradient-to-r from-[#e6f9f7] to-[#F0FBFA] text-[#00796B] text-[13px] rounded-xl border border-[#B2DFDB]" id="exp-${index}">
+                    <div class="flex items-center mb-1"><span class="text-sm mr-1">💡</span><strong class="font-bold text-[#00695C]">解析</strong></div>
+                    <p class="leading-relaxed text-[#004D40]">${item.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(qDiv);
+        });
+
+        function handleAnswer(qIndex, selectedOptIndex, btnEl) {
+            if (answeredQuestions.has(qIndex)) return;
+            answeredQuestions.add(qIndex);
+
+            const isCorrect = selectedOptIndex === quizData[qIndex].answer;
+            const optionsContainer = document.getElementById(`options-${qIndex}`);
+            const buttons = optionsContainer.querySelectorAll('.quiz-option');
+
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === quizData[qIndex].answer) {
+                    btn.classList.add('correct');
+                    btn.innerHTML += ' <span class="float-right">✅</span>';
+                } else if (idx === selectedOptIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                    btn.innerHTML += ' <span class="float-right">❌</span>';
+                }
+            });
+
+            if (isCorrect) score++;
+            scoreDisplay.textContent = `${score} / 15`;
+            document.getElementById(`exp-${qIndex}`).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
