@@ -1,0 +1,486 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>鑲岃倝渚︽帰 - 鑰佸勾楠ㄩ鑲屼笌杩愬姩瀹堟姢</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f7f9fc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(31, 38, 135, 0.08);
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+        }
+        .tab-content { display: none; }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .quiz-option { transition: all 0.3s ease; }
+        .quiz-option.selected { border-color: #4ECDC4; background-color: #e6f9f7; }
+        .quiz-option.correct { border-color: #4CAF50; background-color: #E8F5E9; color: #2E7D32; }
+        .quiz-option.incorrect { border-color: #F44336; background-color: #FFEBEE; color: #C62828; }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* -------------- 瑙ｅ墫瀛﹁倢鑲夋敹缂╄垝寮犲姩鐢?-------------- */
+        
+        /* 鏍稿績閫昏緫锛氱敤涓€涓崐閫忔槑鐨勭孩鑹插舰鐘跺眰鍙犲湪鍥句笂锛屾ā鎷熻倢鑲夎倢鑵广€?           鏀剁缉(Concentric contraction)鏃讹細鑲岃倝鍙樼煭銆佸彉绮?鑶ㄨ儉)銆?           鑸掑紶(Relaxation)鏃讹細鎭㈠鍘熺姸銆?*/
+
+        .anatomy-muscle {
+            position: absolute;
+            background: rgba(255, 60, 60, 0);
+            border: 2px solid transparent;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            --rot: rotate(0deg); /* 鎺у埗姣忎竴鍧楄倢鑲夌殑鍊炬枩瑙掑害 */
+            /* 娣诲姞缃戞牸绾圭悊妯℃嫙鑲岀氦缁?*/
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px);
+        }
+
+        /* 涓绘敹缂╁姩鐢伙細鑲屾潫缂╃煭銆佽啫鑳€鍏呰 */
+        @keyframes muscle-pump {
+            0% { transform: translate(-50%, -50%) var(--rot) scale(1); opacity: 0; background-color: rgba(255, 60, 60, 0); }
+            15% { opacity: 1; border-color: rgba(255, 255, 255, 0.9); background-color: rgba(255, 60, 60, 0.5); }
+            50% { 
+                /* X杞村彉绮楋紝Y杞村彉鐭紝缁撳悎瀵瑰簲鐨勫熀纭€鏃嬭浆瑙掑害锛屾ā鎷熺湡瀹炵殑鑲岃倝鍚戝績鏀剁缉 */
+                transform: translate(-50%, -50%) var(--rot) scaleX(1.4) scaleY(0.75); 
+                background-color: rgba(255, 40, 40, 0.8);
+                box-shadow: 0 0 25px rgba(255, 0, 0, 0.6);
+            }
+            85% { opacity: 1; border-color: rgba(255, 255, 255, 0.9); background-color: rgba(255, 60, 60, 0.5); }
+            100% { transform: translate(-50%, -50%) var(--rot) scale(1); opacity: 0; background-color: rgba(255, 60, 60, 0); }
+        }
+
+        .is-animating .anatomy-muscle {
+            animation: muscle-pump 1.5s ease-in-out infinite;
+        }
+
+        /* 閽堝涓嶅悓閮ㄤ綅鐨勫叿浣撹倢鑲夊舰鐘朵笌瀹氫綅 (閫傞厤鍥剧墖鍐呬汉鐗╃殑甯歌韬綅) */
+        
+        /* 1. 鑲变簩澶磋倢 (鎵嬭噦鍓嶄晶锛岀暐寰€炬枩)锛岄潬宸︿笂 */
+        .muscle-bicep { --rot: rotate(-25deg); top: 35%; left: 42%; width: 35px; height: 80px; border-radius: 50%; }
+        /* 1. 鑲变笁澶磋倢 (鎵嬭噦鍚庝晶锛屼笌浜屽ご鑲屽钩琛?锛岄潬鍙充笅 */
+        .muscle-tricep { --rot: rotate(-25deg); top: 48%; left: 55%; width: 30px; height: 90px; border-radius: 50%; }
+        
+        /* 2. 鑲″洓澶磋倢 (澶ц吙鍓嶄晶锛屽ぇ闈㈢Н姘存淮褰?锛屽眳涓亸涓?*/
+        .muscle-quad { --rot: rotate(0deg); top: 45%; left: 50%; width: 80px; height: 130px; border-radius: 40% 40% 60% 60%; }
+        
+        /* 3. 鑵撹偁鑲?(灏忚吙鑲氬悗渚у渾娑︽按婊村舰)锛屽眳涓亸鍚庡亸涓?*/
+        .muscle-calf { --rot: rotate(-10deg); top: 60%; left: 53%; width: 65px; height: 100px; border-radius: 50% 50% 30% 30%; }
+        
+        /* 4. 鑵圭洿鑲?(韬共姝ｄ腑蹇冮暱鏉℃柟鍧楀舰) */
+        .muscle-abs { --rot: rotate(0deg); top: 45%; left: 50%; width: 80px; height: 120px; border-radius: 15px; }
+
+        /* 鍙戝姏鎻愮ず瀛?*/
+        .contraction-text {
+            position: absolute; top: 15%; left: 50%; transform: translate(-50%, -50%);
+            background: #FF4757; color: white; padding: 6px 14px; border-radius: 20px;
+            font-size: 14px; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 71, 87, 0.5);
+            white-space: nowrap; z-index: 30;
+            border: 2px solid white;
+        }
+        .is-animating .contraction-text { opacity: 1; top: 20%; }
+
+        /* 鑳屾櫙鍘嬫殫鍑稿嚭鑲岃倝灞?*/
+        .dark-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+            opacity: 0; transition: opacity 0.4s; z-index: 10;
+        }
+        .is-animating .dark-overlay { opacity: 1; }
+
+    </style>
+</head>
+<body class="text-gray-800 antialiased pb-20">
+
+    <header class="bg-gradient-primary rounded-b-[40px] p-6 pt-10 shadow-lg relative overflow-hidden">
+        <div class="relative z-10 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">鑲岃倝渚︽帰 馃暤锔忊€嶁檪锔?/h1>
+                <p class="text-gray-700 text-sm font-medium">瀵绘壘韬綋鍔ㄥ姏婧愶紝瀹堟姢闀胯€呭仴搴疯</p>
+            </div>
+            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
+                <span class="text-2xl">馃挭</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="flex justify-around bg-white mx-4 mt-6 rounded-2xl shadow-sm p-1 z-30 relative">
+        <button onclick="switchTab('activity')" class="tab-btn active w-1/3 py-3 text-sm font-bold text-[#FF6B6B] bg-gray-50 rounded-xl transition-colors" id="btn-activity">璇惧爞娲诲姩</button>
+        <button onclick="switchTab('cases')" class="tab-btn w-1/3 py-3 text-sm font-bold text-gray-500 rounded-xl transition-colors" id="btn-cases">妗堜緥鍙樺寲</button>
+        <button onclick="switchTab('quiz')" class="tab-btn w-1/3 py-3 text-sm font-bold text-gray-500 rounded-xl transition-colors" id="btn-quiz">闅忓爞娴嬭瘯</button>
+    </nav>
+
+    <main class="mt-6 px-4">
+        
+        <!-- Tab 1: 璇惧爞娲诲姩 -->
+        <section id="activity" class="tab-content active">
+            <div class="mb-4 text-center">
+                <span class="text-xs font-bold bg-[#ffe0e0] text-[#FF6B6B] px-3 py-1 rounded-full uppercase tracking-wide shadow-sm">宸﹀彸婊戝姩鍗＄墖锛屽畬鎴?4 涓睛鎺换鍔?馃憠</span>
+            </div>
+
+            <div class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-4">
+                
+                <!-- Slide 1: 涓婅噦 -->
+                <div class="snap-center shrink-0 w-[90vw] glass-card rounded-3xl overflow-hidden relative border-t-4 border-[#FF6B6B]">
+                    <!-- Interactive Animation Area -->
+                    <div id="anim-area-1" class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <img src="assets/elderly_care.png" class="absolute inset-0 w-full h-full object-cover opacity-60" alt="杩愬姩鍥?>
+                        <div class="dark-overlay"></div>
+                        
+                        <!-- 鐪熷疄鐨勮倢鑲夋敹缂╂ā鎷熷浘灞?-->
+                        <div class="anatomy-muscle muscle-bicep"></div>
+                        <div class="anatomy-muscle muscle-tricep" style="animation-delay: 0.75s;"></div> <!-- 涓夊ご鑲屼氦鏇挎敹缂?-->
+                        
+                        <!-- 闈欐€佹爣绛?-->
+                        <div class="absolute top-[20%] left-[35%] transform -translate-x-1/2 -translate-y-1/2 z-20">
+                            <div class="text-[10px] font-bold text-gray-800 bg-white/95 px-1.5 py-0.5 rounded shadow">鑲变簩澶磋倢</div>
+                        </div>
+                        <div class="absolute top-[25%] left-[65%] transform -translate-x-1/2 -translate-y-1/2 z-20">
+                            <div class="text-[10px] font-bold text-gray-800 bg-white/95 px-1.5 py-0.5 rounded shadow">鑲变笁澶磋倢</div>
+                        </div>
+
+                        <div class="contraction-text">鈿?鍙樼矖锛佸彉鐭紒鑲岃倝鏀剁缉涓紒</div>
+                        
+                        <!-- PLAY BUTTON -->
+                        <button onclick="playMuscleAnim('anim-area-1', this)" class="absolute bottom-3 right-3 bg-white hover:bg-[#FF6B6B] hover:text-white text-[#FF6B6B] border border-[#FF6B6B] px-3 py-1.5 rounded-full text-[13px] font-bold shadow-lg transition-all flex items-center gap-1 cursor-pointer z-30">
+                            鈻?鏄剧ず鑲岃倝鏀剁缉
+                        </button>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xl font-bold">姝ラ 1锛氫笂鑷傛牳蹇?/h2>
+                            <span class="text-xs font-bold text-white bg-[#FF6B6B] px-2 py-1 rounded-lg">1 / 4</span>
+                        </div>
+                        <div class="bg-[#FFF4F4] border border-[#FFE0E0] p-3 rounded-xl mb-3 shadow-sm">
+                            <h3 class="font-bold text-[#FF6B6B] text-sm mb-1">馃摙 瑙傚療瑕佺偣锛?/h3>
+                            <p class="text-[13px] text-gray-700 font-medium leading-relaxed">璇烽€氳繃鍔ㄧ敾瑙傚療锛屽綋鎵嬭噦寮洸鏃讹紝鍓嶄晶鐨?strong class="text-red-500">鑲变簩澶磋倢浼氬彉鐭€佸彉绮楋紙鍚戝績鏀剁缉锛?/strong>鍙戠敓鑶ㄨ儉闅嗚捣銆?/p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">馃懘</span>
+                            <div>
+                                <div class="text-[13px] font-bold text-gray-800">闀胯€呯棝鐐?/div>
+                                <p class="text-[12px] text-[#d9534f]">鍔涢噺涓嶈冻浼氬鑷磋€佷汉鎯崇敤鎵嬫拺杞鎵舵墜绔欒捣鏉ユ椂浣夸笉涓婂姴锛岀敋鑷冲悆楗帀绛峰瓙銆?/p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: 澶ц吙 -->
+                <div class="snap-center shrink-0 w-[90vw] glass-card rounded-3xl overflow-hidden relative border-t-4 border-[#4ECDC4]">
+                    <div id="anim-area-2" class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <img src="assets/leg_extension.png" class="absolute inset-0 w-full h-full object-cover opacity-80" alt="涓嬭偄" onerror="this.src='https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'">
+                        <div class="dark-overlay"></div>
+                        
+                        <!-- 鑲″洓澶磋倢鏀剁缉妯℃嫙鍥惧眰 -->
+                        <div class="anatomy-muscle muscle-quad"></div>
+                        
+                        <div class="absolute top-[25%] left-1/2 transform -translate-x-1/2 z-20">
+                            <div class="text-[11px] font-bold text-gray-800 bg-white/95 px-2 py-0.5 rounded shadow">鑲″洓澶磋倢 (澶ц吙鍓嶄晶)</div>
+                        </div>
+
+                        <div class="contraction-text">鈿?浼歌啙鍙戝姏锛佸ぇ鑵胯倢鑲夌揣缁疯啫鑳€</div>
+                        
+                        <button onclick="playMuscleAnim('anim-area-2', this)" class="absolute bottom-3 right-3 bg-white hover:bg-[#4ECDC4] hover:text-white text-[#00897B] border border-[#4ECDC4] px-3 py-1.5 rounded-full text-[13px] font-bold shadow-lg transition-all flex items-center gap-1 cursor-pointer z-30">
+                            鈻?鏄剧ず鑲岃倝鏀剁缉
+                        </button>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xl font-bold">姝ラ 2锛氶槻璺屽€掍富鍔涘啗</h2>
+                            <span class="text-xs font-bold text-white bg-[#4ECDC4] px-2 py-1 rounded-lg">2 / 4</span>
+                        </div>
+                        <div class="bg-[#E6F9F7] border border-[#B2DFDB] p-3 rounded-xl mb-3 shadow-sm">
+                            <h3 class="font-bold text-[#00897B] text-sm mb-1">馃摙 瑙傚療瑕佺偣锛?/h3>
+                            <p class="text-[13px] text-gray-700 font-medium leading-relaxed">绔欒捣鏃讹紝澶ц吙鍓嶄晶锛?strong class="text-[#00897B]">鑲″洓澶磋倢</strong>锛夊彂鐢熷墽鐑堢殑鏀剁缉锛岃倢绾ょ淮鍙樼矖锛屾彁渚涘鎶楅噸鍔涚殑鏍稿績鍔涢噺銆?/p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">馃懙</span>
+                            <div>
+                                <div class="text-[13px] font-bold text-gray-800">闀胯€呯棝鐐?/div>
+                                <p class="text-[12px] text-[#d9534f]">钀庣缉鍚庯紝鑰佷汉浠庝綆鐭矙鍙戜笂绔欒捣鏋佸叾鍥伴毦锛屼笅妤兼绂诲績鏀剁缉鍔涗笉浣忥紝鏋佹槗璺屽€掋€?/p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3: 灏忚吙 -->
+                <div class="snap-center shrink-0 w-[90vw] glass-card rounded-3xl overflow-hidden relative border-t-4 border-[#FFB74D]">
+                    <div id="anim-area-3" class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <img src="assets/calf_raise.png" class="absolute inset-0 w-full h-full object-cover opacity-80" alt="灏忚吙" onerror="this.src='https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80'">
+                        <div class="dark-overlay"></div>
+                        
+                        <!-- 灏忚吙鎺掕偁鑲屾敹缂╂ā鎷熷浘灞?-->
+                        <div class="anatomy-muscle muscle-calf"></div>
+                        
+                        <div class="absolute top-[35%] left-1/2 transform -translate-x-1/2 z-20">
+                            <div class="text-[11px] font-bold text-gray-800 bg-white/95 px-2 py-0.5 rounded shadow whitespace-nowrap">灏忚吙鍚庝晶缇?(鑵撹偁鑲?</div>
+                        </div>
+
+                        <div class="contraction-text">鈿?韪剼锛佸儚寮圭哀涓€鏍峰帇缂╁彉纭?/div>
+
+                        <button onclick="playMuscleAnim('anim-area-3', this)" class="absolute bottom-3 right-3 bg-white hover:bg-[#FFB74D] hover:text-white text-[#F57C00] border border-[#FFB74D] px-3 py-1.5 rounded-full text-[13px] font-bold shadow-lg transition-all flex items-center gap-1 cursor-pointer z-30">
+                            鈻?鏄剧ず鑲岃倝鏀剁缉
+                        </button>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xl font-bold">姝ラ 3锛氬钩琛＄ǔ瀹氬櫒</h2>
+                            <span class="text-xs font-bold text-white bg-[#FFB74D] px-2 py-1 rounded-lg">3 / 4</span>
+                        </div>
+                        <div class="bg-[#FFF8E1] border border-[#FFECB3] p-3 rounded-xl mb-3 shadow-sm">
+                            <h3 class="font-bold text-[#F57C00] text-sm mb-1">馃摙 瑙傚療瑕佺偣锛?/h3>
+                            <p class="text-[13px] text-gray-700 font-medium leading-relaxed">褰撴垜浠府璧疯剼灏栵紝灏忚吙鍚庝晶鑲岃倝鍍忓脊寮撲竴鏍?strong class="text-[#F57C00]">鏀剁缉鍙樼揣銆佸舰鎬佸彉绮楃煭</strong>锛屾媺鍔ㄨ冻鑳岀鍦般€?/p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">馃懘</span>
+                            <div>
+                                <div class="text-[13px] font-bold text-gray-800">闀胯€呯棝鐐?/div>
+                                <p class="text-[12px] text-[#d9534f]">鎶剼灏栫殑鑲岃倝鏃犲姏浼氬鑷磋€佷汉璧拌矾鈥滄嫋鍦版鎬佲€濓紝閬囧埌鍧庡澐鏋佹槗鍥犱负鎶剼涓嶅楂樿缁婃憯銆?/p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4: 韬共鏍稿績 -->
+                <div class="snap-center shrink-0 w-[90vw] glass-card rounded-3xl overflow-hidden relative border-t-4 border-[#9575CD]">
+                    <div id="anim-area-4" class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <img src="assets/aging_muscle.png" class="absolute inset-0 w-full h-full object-cover opacity-80" alt="鏍稿績" onerror="this.src='https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'">
+                        <div class="dark-overlay"></div>
+                        
+                        <!-- 鑵圭洿鑲屾敹缂╂ā鎷熷浘灞?-->
+                        <div class="anatomy-muscle muscle-abs"></div>
+                        
+                        <div class="absolute top-[25%] left-1/2 transform -translate-x-1/2 z-20">
+                            <div class="text-[11px] font-bold text-gray-800 bg-white/95 px-2 py-0.5 rounded shadow">鑵归潰鑲岀兢 (鑵圭洿鑲?</div>
+                        </div>
+
+                        <div class="contraction-text">鈿?绱х环鎸ゅ帇锛佸儚鎷夌揣鏉熻叞甯?/div>
+
+                        <button onclick="playMuscleAnim('anim-area-4', this)" class="absolute bottom-3 right-3 bg-white hover:bg-[#9575CD] hover:text-white text-[#7B1FA2] border border-[#9575CD] px-3 py-1.5 rounded-full text-[13px] font-bold shadow-lg transition-all flex items-center gap-1 cursor-pointer z-30">
+                            鈻?鏄剧ず鑲岃倝鏀剁缉
+                        </button>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xl font-bold">姝ラ 4锛氫綋鎬佹敮鎾戞煴</h2>
+                            <span class="text-xs font-bold text-white bg-[#9575CD] px-2 py-1 rounded-lg">4 / 4</span>
+                        </div>
+                        <div class="bg-[#F3E5F5] border border-[#E1BEE7] p-3 rounded-xl mb-3 shadow-sm">
+                            <h3 class="font-bold text-[#7B1FA2] text-sm mb-1">馃摙 瑙傚療瑕佺偣锛?/h3>
+                            <p class="text-[13px] text-gray-700 font-medium leading-relaxed">鏍稿績閮ㄤ綅鐨勮倢鑲夋敹缂╁氨鍍忔媺绱т簡鑷甫鐨勫ぉ鐒垛€?strong class="text-[#7B1FA2]">鑲岃倝鏉熻叞甯?/strong>鈥濓紝鎸ゅ帇鏀剁揣骞跺寘瑁逛綇鑵版銆?/p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">馃懙</span>
+                            <div>
+                                <div class="text-[13px] font-bold text-gray-800">闀胯€呮牳蹇冮€€鍖?/div>
+                                <p class="text-[12px] text-[#d9534f]">涓€鏃﹁繖閮ㄥ垎鍔涢噺琛伴€€锛屽氨浼氬嚭鐜颁弗閲嶇殑鍚兏銆侀┘鑳岋紝浠ュ強杩炵坏涓嶆柇鐨勬參鎬ц叞閮ㄩ吀鐥涖€?/p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Tab 2: 妗堜緥鍙樺寲 -->
+        <section id="cases" class="tab-content">
+            <div class="glass-card rounded-3xl overflow-hidden mb-6 border-l-4 border-[#FF6B6B] shadow-sm">
+                <div class="relative h-48">
+                    <img src="assets/leg_extension.png" class="w-full h-full object-cover object-top" alt="鐜嬬埛鐖? onerror="this.src='https://images.unsplash.com/photo-1516302752625-fcc3c50ae61f?auto=format&fit=crop&w=800&q=80'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                        <h2 class="text-xl font-bold text-white tracking-wide">妗堜緥涓€锛氱帇鐖风埛鐨勨€滆吙杞€濆嵄鏈?/h2>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <p class="text-[13px] text-gray-700 leading-relaxed mb-4 italic border-l-2 border-gray-300 pl-3">鈥滄垜鏈€杩戞€绘槸鎰熻鑵胯剼鍙戣蒋...鍧愬湪姣旇緝鐭殑娌欏彂涓婏紝濡傛灉涓嶆壎涓滆タ銆佷笉璁╀汉鎷変竴鎶婏紝鎴戞牴鏈珯涓嶈捣鏉ャ€傛劅瑙夊ぇ鑵垮墠渚у緢绌猴紝浣夸笉涓婂姴銆傗€?鈥斺€?76宀?鐜嬬埛鐖?/p>
+                    <div class="bg-red-50 p-4 rounded-xl text-[13px] mb-2 shadow-inner">
+                        <div class="flex items-center mb-2">
+                            <span class="text-lg mr-2">馃攳</span> 
+                            <strong class="text-red-800 text-[14px]">渚︽帰娲炲療锛?/strong>
+                        </div>
+                        <ul class="list-disc pl-5 space-y-2 text-red-900 font-medium">
+                            <li>璧风珛鍥伴毦璇存槑涓嬭偄澶ц倢缇わ紙鎶楅噸鍔涜倢锛夊嚭鐜颁弗閲嶉€€鍖栥€?/li>
+                            <li>澶ц吙鍓嶄晶鐨?<span class="bg-red-200 px-1 rounded underline">鑲″洓澶磋倢</span> 鍜岃噣閮?<span class="bg-red-200 px-1 rounded underline">鑷€澶ц倢</span> 涓ラ噸钀庣缉锛屾棤娉曟彁渚涙湁鏁堢殑鍚戝績鏀剁缉鍔涢噺銆?/li>
+                            <li>杩欐槸寮曞彂鑷村懡璺屽€掔殑鏋侀珮鍗变俊鍙枫€?/li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl overflow-hidden mb-6 border-l-4 border-[#4ECDC4] shadow-sm">
+                <div class="relative h-48">
+                    <img src="assets/case2_fatigue.png" class="w-full h-full object-cover object-center" alt="寮犲ザ濂? onerror="this.src='https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                        <h2 class="text-xl font-bold text-white tracking-wide">妗堜緥浜岋細寮犲ザ濂剁殑鈥滆櫄鑳栤€濈瀵?/h2>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <p class="text-[13px] text-gray-700 leading-relaxed mb-4 italic border-l-2 border-gray-300 pl-3">鈥滃埆浜虹湅鎴戣吙涔熶笉缁嗗晩锛屾€庝箞骞茬偣娲诲氨绱紵鍒氭墠杩炲箍鍙ｇ摱鐩栭兘鎵撲笉寮€浜嗭紝鎷ф瘺宸句篃鎷т笉骞叉按锛屾劅瑙夎€佷簡鐪熸病鐢ㄤ簡銆傗€?鈥斺€?72宀?寮犲ザ濂?/p>
+                    <div class="bg-[#E6F9F7] p-4 rounded-xl text-[13px] shadow-inner">
+                        <div class="flex items-center mb-2">
+                            <span class="text-lg mr-2">馃敩</span> 
+                            <strong class="text-[#00796B] text-[14px]">鑲屽皯鐥囧井瑙傚彉鍖栵細</strong>
+                        </div>
+                        <div class="mb-3 flex justify-center">
+                            <img src="assets/aging_muscle.png" class="h-24 rounded-lg shadow-sm w-full object-cover" alt="鑲岃倝閫€鍖栧姣?>
+                        </div>
+                        <ul class="list-disc pl-5 space-y-2 text-[#00695C] font-medium">
+                            <li><strong>鑴傝偑娴告鼎锛?/strong> 鑲岃倝绾ょ淮闂撮殭鍏呮枼澶ч噺鑴傝偑锛堢被浼煎ぇ鐞嗙煶鑺辩汗锛夛紝瀵艰嚧鑵跨湅璧锋潵绮楋紝浣嗗彂鍔涘崟浣嶅彉灏戙€?/li>
+                            <li><strong>蹇缉鑲岀氦缁存祦澶憋細</strong> 璐熻矗鐖嗗彂鏀剁缉鐨勫揩缂╄倢绾ょ淮浼樺厛娴佸け锛屽鑷村姩浣滆繜缂擄紙鎻″姏鎬ュ墽涓嬮檷锛夛紝鏋佹槗璺屽€掋€?/li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: 闅忓爞娴嬭瘯 -->
+        <section id="quiz" class="tab-content">
+            <div class="glass-card rounded-3xl p-6 mb-6">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold">15棰樺ぇ闂叧 馃幆</h2>
+                    <div class="flex flex-col items-end">
+                        <span class="text-lg font-bold text-white bg-gradient-to-r from-[#FF6B6B] to-[#4ECDC4] px-4 py-1 rounded-full shadow-sm" id="score-display">0 / 15</span>
+                    </div>
+                </div>
+                <div id="quiz-container" class="space-y-4 pt-4"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-[#FF6B6B]', 'bg-gray-50');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById(tabId).classList.add('active');
+            let activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.remove('text-gray-500');
+            activeBtn.classList.add('text-[#FF6B6B]', 'bg-gray-50');
+        }
+
+        // --- 瑙ｅ墫瀛﹀彲瑙嗗寲锛氭ā鎷熺湡姝ｈ倢鑲夆€滃彉绮楀彉鐭€濈殑鍚戝績鏀剁缉鏁堟灉 ---
+        function playMuscleAnim(areaId, btnEl) {
+            const animArea = document.getElementById(areaId);
+            const originalBtnHtml = btnEl.innerHTML;
+            
+            // 闃叉姈
+            if (animArea.classList.contains('is-animating')) return;
+
+            // 1. 鏀瑰彉鎸夐挳鐘舵€?            btnEl.innerHTML = `馃攧 鎾斁鍔ㄧ敾涓?..`;
+            btnEl.classList.add('opacity-80', 'pointer-events-none', 'bg-gray-200', 'text-gray-600', 'border-gray-200');
+            btnEl.classList.remove('text-[#FF6B6B]', 'text-[#00897B]', 'text-[#F57C00]', 'text-[#7B1FA2]', 'bg-white');
+            
+            // 2. 娣诲姞鍔ㄧ敾绫伙紝寮€濮嬶細鍥惧眰鍙樻殫 -> 娴幇瀹炰綋鑲岃倝鑹插潡 -> 鑹插潡鍙樼煭鍙樼矖鍙戠孩鍏?            animArea.classList.add('is-animating');
+
+            // 3. 3.5绉掑悗缁撴潫锛氳倢鑲夋仮澶嶇粏闀垮舰鐘跺苟娑堝け
+            setTimeout(() => {
+                animArea.classList.remove('is-animating');
+                btnEl.innerHTML = originalBtnHtml;
+                btnEl.className = btnEl.className.replace('bg-gray-200 text-gray-600 border-gray-200', '');
+                btnEl.classList.remove('opacity-80', 'pointer-events-none');
+                btnEl.classList.add('bg-white');
+            }, 3500);
+        }
+
+        // Quiz Logic
+        const quizData = [
+            { q: "1. 闅忕潃骞撮緞澧為暱锛岃€佸勾浜烘渶瀹规槗娴佸け銆佷笖瀵归闃茶穼鍊掕嚦鍏抽噸瑕佺殑楠ㄩ鑲屼富瑕侀泦涓湪鍝釜閮ㄤ綅锛?, options: ["涓婅偄", "涓嬭偄", "棰堥儴", "闈㈤儴"], answer: 1, explanation: "涓嬭偄鑲岃倝锛堝鑲″洓澶磋倢銆佸皬鑵夸笁澶磋倢锛夋壙杞藉叏韬噸閲忓苟缁存寔骞宠　锛岃€佸勾浜轰笅鑲㈣倢鑲夋祦澶辨渶涓烘槑鏄句笖鍗遍櫓銆? },
+            { q: "2. 鍦ㄢ€滆倢鑲変睛鎺⑩€濇椿鍔ㄤ腑锛岃嫢鍙戠幇鐜嬬埛鐖蜂粠杈冧綆鐨勬矙鍙戜笂璧风珛闈炲父鍥伴毦锛岃繖涓昏涓庡摢鍧楄倢鑲夊姏閲忎弗閲嶅噺寮辨湁鍏筹紵", options: ["鑲变簩澶磋倢", "鑳岄様鑲?, "鑲″洓澶磋倢", "鑵瑰鏂滆倢"], answer: 2, explanation: "鑲″洓澶磋倢锛堝ぇ鑵垮墠渚э級鐨勪富瑕佸姛鑳芥槸鍦ㄨ捣绔嬨€佷笂妤兼鏃朵几鐩磋啙鍏宠妭锛岃绉颁负鎶楅噸鍔涜倢銆? },
+            { q: "3. 寮犵埛鐖峰钩鏃惰蛋璺€诲枩娆⑩€滄嫋鐫€鑴氳蛋鈥濓紝鏋佹槗琚湴姣竟缂樼粖鍊掋€傝繖閫氬父鏄洜涓鸿礋璐ｅ悜涓婃姮璧疯剼灏栫殑鍝儴鍒嗚倢鑲夌兢鏃犲姏锛?, options: ["灏忚吙鍓嶄晶鑲岀兢 (濡傝儷楠ㄥ墠鑲?", "澶ц吙鍚庝晶鑲岀兢 (濡傝偂浜屽ご鑲?", "鑷€澶ц倢", "鑳稿ぇ鑲?], answer: 0, explanation: "灏忚吙鍓嶄晶鑲岃倝璐熻矗瓒宠儗灞堬紙鎶剼灏栵級锛屽姏閲忎笅闄嶄細瀵艰嚧璧拌矾鏃朵笅鑴氭棤鍔涖€佹嫋娌擄紝澧炲姞缁婂€掗闄┿€? },
+            { q: "4. 鑰佸勾浜虹粡甯稿嚭鐜扳€滃惈鑳搁┘鑳屸€濈殑浣撴€佹敼鍙橈紝闄や簡楠ㄩ閫€鍖栧锛屼富瑕佹槸鍥犱负鍝儴鍒嗚倢鑲夎悗缂╂棤鍔涳紝鏃犳硶瀵规姉閲嶅姏灏嗚韩浣撴媺鐩达紵", options: ["鑵归儴鑲岃倝 (鑵圭洿鑲?", "澶ц吙鍓嶄晶 (鑲″洓澶磋倢)", "鑳岄儴鏍稿績缁存寔鑲岀兢 (濡傜珫鑴婅倢绛?", "鑲╅儴鑲岀兢 (涓夎鑲?"], answer: 2, explanation: "鑳岄儴鑲岃倝璐熻矗浣胯剨鏌卞悗浼稿拰缁存寔鐩寸珛濮垮娍锛屽姏閲忚“閫€浼氬鑷磋剨鏌辫秺鏉ヨ秺鍚戝墠寮洸鑰岄┘鑳屻€? },
+            { q: "5. 鑲′簩澶磋倢鍦ㄤ笅鑲㈣繍鍔ㄤ腑璧烽噸瑕佷綔鐢ㄣ€傚鏋滀竴浣嶉暱鑰呯殑鑲′簩澶磋倢鍜岃噣閮ㄨ倢缇ゅ姏閲忎笉瓒筹紝浠栧湪杩涜鍝」娲诲姩鏃舵渶瀹规槗鎰熷埌鎺у埗涓嶄綇韬綋锛?, options: ["韬哄湪搴婁笂缈昏韩", "涓嬫ゼ姊垨涓嬪潯", "浼告墜鎷块珮澶勭墿鍝?, "骞冲湴缂撴參琛岃蛋"], answer: 1, explanation: "涓嬫ゼ姊拰涓嬪潯闇€瑕佸ぇ鑵垮悗渚ц倢缇ゅ仛鈥滅蹇冩敹缂┾€濇潵鎺у埗韬綋涓嬮檷鐨勯€熷害锛岃繖閮ㄥ垎鑲岃倝鏃犲姏鏋佹槗瀵艰嚧涓嬫ゼ鏃惰吙杞憯鍊掋€? },
+            { q: "6. 鑵撹偁鑲?姣旂洰楸艰倢锛堝皬鑵垮悗渚ц倢鑲夛級鍦ㄦ棩甯哥敓娲讳腑鏈€閲嶈鐨勪綔鐢ㄦ槸浠€涔堬紵", options: ["寮洸鎵嬭噦", "鎸虹洿鑵版澘", "淇濇寔绔欑珛骞宠　鍜岃宫鍦板彂鍔?, "杞姩澶撮儴"], answer: 2, explanation: "杩欓儴鍒嗚倢鑲夎礋璐ｈ冻璺栧眻锛堣府鑴氬皷锛夛紝鍦ㄤ汉绫荤洿绔嬭璧拌宫鍦板彂鍔涗互鍙婃媺浣忚韩浣撻槻鍓嶅€掍腑鍙戞尌鏍稿績浣滅敤銆? },
+            { q: "7. 鍦ㄧ収鎶ら渶瑕佷娇鐢ㄨ疆妞呯殑鍗婂け鑳介暱鑰呮椂锛岄紦鍔遍暱鑰呴敾鐐间笂鑷傜殑鑲变笁澶磋倢锛屼富瑕佺洰鐨勬槸涓轰簡鏀瑰杽鍝」鑳藉姏锛?, options: ["姊冲ご", "浣跨敤绛峰瓙鍚冮キ", "鐢ㄦ墜鎾戜綇杞鎵舵墜璋冩暣鍧愬Э鎴栬緟鍔╃珯璧?, "鎵ｈ。鏈嶆墸瀛?], answer: 2, explanation: "鑲变笁澶磋倢璐熻矗浼哥洿鎵嬭噦锛岄暱鑰呭湪鎾戞壎鎵嬭捣韬垨杞Щ浣撲綅鏃堕兘闇€瑕佸己澶х殑鑷傞儴浼稿睍鍔涢噺銆? },
+            { q: "8. 鎵€璋撶殑鈥滆€佸勾鎬ц倢灏戠棁鈥濓紙Sarcopenia锛夛紝闄や簡楠ㄩ鑲岃川閲忓噺灏戝锛岃繕寮鸿皟鍝袱椤规寚鏍囩殑鏄捐憲涓嬮檷锛?, options: ["鑲岃倝浣撶Н鍜屾按鍒?, "鑲岃倝鍔涢噺鍜岃韩浣撳姛鑳斤紙濡傛閫燂級", "鑲岃倝寮规€т笌棰滆壊", "楠ㄥ瘑搴︿笌鍏宠妭婊戞恫"], answer: 1, explanation: "鑲屽皯鐥囩殑璇婃柇涓嶄粎鐪嬭倢鑲夐噺锛屾洿閲嶈鐨勬槸璇勪及鑲岃倝鍔涢噺锛堝鎻″姏锛夊拰韬綋鍔熻兘琛ㄧ幇锛堝鏃ュ父璧拌矾閫熷害锛夈€? },
+            { q: "9. 鎸囧鑰佸勾浜烘劅鍙楄吂閮ㄨ倢鑲夋椂锛屽簲鍛婄煡鑰佸勾浜轰繚鎸佷竴瀹氳吂鑲屽姏閲忎富瑕佹槸涓轰簡浠€涔堬紵", options: ["鎷ユ湁鑲岃倝绾挎潯", "澧炲姞娑堝寲娑插垎娉?, "缁存寔韬共鏍稿績绋冲畾锛屼繚鎶よ叞妞庨闃茶叞鐥?, "淇冭繘蹇冭剰璺冲姩"], answer: 2, explanation: "鑵硅倢涓庤儗鑲屽叡鍚屾瀯鎴愯韩浣撴牳蹇冿紝鍍忊€滄潫鑵板甫鈥濅竴鏍风ǔ瀹氳剨妞庯紝鏍稿績鏃犲姏鏄鑷撮暱鑰呮參鎬ц叞鐥涚殑閲嶈鍘熷洜銆? },
+            { q: "10. 寮犲ザ濂舵姳鎬ㄦ墜鎷т笉骞叉瘺宸撅紝鎵撳紑骞垮彛鐨勭摱鐩栦篃鎰熻璐瑰姏銆傝繖鍙嶆槧浜嗗墠鑷傝倢鑲夊姛鑳介€€鍖栵紝骞虫椂甯哥敤鏉ュ吀鍨嬭瘎浼拌閫€鍖栫殑鎸囨爣鏄紵", options: ["鑲烘椿閲?, "鐨ざ鍘氬害", "鎻″姏", "鎻℃嫵閫熷害"], answer: 2, explanation: "鎻″姏鏄瘎浼板叏韬笂涓嬭偄鏁翠綋鑲岃倝鍔涢噺闈炲父绠€渚夸笖鏈夋晥鐨勯噾鏍囧噯鎸囨爣銆? },
+            { q: "11. 闅忕潃琛拌€侊紝鑰佸勾浜轰綋鍐呰倢鑲変笉浠呭彉缁嗭紝杩樹細琚摢绉嶇粍缁囬€愭笎娴告鼎鏇夸唬锛屽鑷存墍璋撶殑鈥滀腑鐪嬩笉涓敤鈥濓紵", options: ["缁撶紨缁勭粐", "鑴傝偑缁勭粐", "娣嬪反缁勭粐", "杞缁勭粐"], answer: 1, explanation: "鑲屽唴鑴傝偑娴告鼎锛堝儚闆姳鑲変竴鏍凤級鏄楠艰倢鑰佸寲鐨勫吀鍨嬪井瑙傜壒寰侊紝瀵艰嚧鑲岃倝鍔涢噺澶у箙涓嬮檷銆? },
+            { q: "12. 琛拌€佽繃绋嬩腑锛屽摢绉嶇被鍨嬬殑鑲岃倝绾ょ淮娴佸け姣斾緥鏈€楂橈紝瀵艰嚧鑰佷汉閬囧埌婊戝€掔瓑绐佸彂鎯呭喌鏃舵潵涓嶅強杩呴€熷弽搴旓紵", options: ["璐熻矗鑰愬姏鐨勬參鑲岀氦缁?, "璐熻矗鐖嗗彂鍔涘拰蹇€熷弽搴旂殑蹇倢绾ょ淮", "蹇冭倢绾ょ淮", "骞虫粦鑲岀氦缁?], answer: 1, explanation: "鈪″瀷蹇缉鑲岀氦缁磋悗缂╂渶蹇笖鏈€涓ラ噸锛屾槸瀵艰嚧鑰佸勾浜鸿穼鍊掑弽搴斾笉鍙婃椂鐨勪富瑕佸師鍥犮€? },
+            { q: "13. 涓洪槻姝㈣€佷汉璺屽€掞紝浠ヤ笅鍝」鍦ㄥ眳瀹剁幆澧冧腑鏈€鑳借捣鍒伴槻鎶ゅ張椤哄簲鑲岃倝鍔熻兘閫€鍖栫殑浣滅敤锛?, options: ["瑕佹眰鑰佷汉蹇呴』灏忔蹇蛋", "鍦ㄩ┈妗舵梺鍜岃蛋寤婂畨瑁呭潥鍥虹殑鎵舵墜锛堝埄鐢ㄤ笂鑲㈠姪鍔涳級", "灏嗘墍鏈夋瀛愭崲鎴愭病鏈夐潬鑳岀殑杞矙鍙?, "瑕佹眰鑰佷汉缁濆闈欏吇涓嶈繍鍔?], answer: 1, explanation: "鏃㈢劧涓嬭偄鑲屽姏閫€鍖栵紝鍚堢悊鍒╃敤鐜璇勪及鍜岃緟鍏凤紙鎵舵墜锛夊埄鐢ㄤ笂鑲㈠姏閲忎唬鍋匡紝鏄穼鍊掗闃茬殑鍏抽敭銆? },
+            { q: "14. 浠ヤ笅鍝娲诲姩灞炰簬鏈夋晥瀹夊叏鐨勮€佸勾浜衡€滄姉闃烩€濊倢鑲夐敾鐐硷紵", options: ["姣忓ぉ蹇窇浜斿叕閲?, "鍧愬Э缂撴參鎶楅樆鎶钩灏忚吙骞朵繚鎸?绉?, "韬綋鐢ㄥ姏鍓х儓鎵浆", "骞垮満鑸炶繛缁烦2灏忔椂"], answer: 1, explanation: "鑰佸勾浜哄叧鑺傝剢寮憋紝鎶楅樆杩愬姩搴斿綋缂撴參鍙楁帶锛屽潗濮挎姮鑵垮嵆鍙湁鏁堥敾鐐艰偂鍥涘ご鑲屻€? },
+            { q: "15. 鍏昏€佹湇鍔′汉鍛樺湪绀惧尯瑕佸揩閫熻瘎浼版棤鐥呭彶鑰佷汉涓嬭偄鑲岃倝鑳藉姏鐨勭畝鍗曟柟娉曟槸锛?, options: ["鏍哥鍏辨尟", "鎶借鍖栭獙鑲岄吀婵€閰?, "5娆℃瀛愯捣绔嬫祴璇?/ 姝ラ€熻鏃舵祴璇?, "蹇冪數鍥炬祴璇?], answer: 2, explanation: "妞呭瓙璧风珛鍜屾閫熸祴璇曟槸绀惧尯涓渶甯哥敤銆佸畨鍏ㄣ€佸瑙傝　閲忎笅鑲㈣倢鍔涘拰鑲屽皯鐥囩殑涓村簥鎵嬫銆? }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const quizContainer = document.getElementById('quiz-container');
+        const scoreDisplay = document.getElementById('score-display');
+
+        quizData.forEach((item, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'quiz-question border border-gray-100 p-4 rounded-2xl bg-white shadow-sm';
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `<button class="quiz-option w-full text-left p-3 mt-2 rounded-xl border border-gray-200 text-[13px] font-medium hover:bg-gray-50 bg-white" 
+                                onclick="handleAnswer(${index}, ${optIndex}, this)">${String.fromCharCode(65 + optIndex)}. ${opt}</button>`;
+            });
+
+            qDiv.innerHTML = `
+                <div class="flex items-start">
+                    <span class="text-[#FF6B6B] font-bold mr-2 text-sm mt-0.5">Q${index+1}</span>
+                    <h3 class="font-bold text-gray-800 text-sm leading-snug">${item.q.replace(/^\d+\.\s*/, '')}</h3>
+                </div>
+                <div class="mt-2" id="options-${index}">${optionsHtml}</div>
+                <div class="hidden mt-4 p-3 bg-gradient-to-r from-[#e6f9f7] to-[#F0FBFA] text-[#00796B] text-[13px] rounded-xl border border-[#B2DFDB]" id="exp-${index}">
+                    <div class="flex items-center mb-1"><span class="text-sm mr-1">馃挕</span><strong class="font-bold text-[#00695C]">瑙ｆ瀽</strong></div>
+                    <p class="leading-relaxed text-[#004D40]">${item.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(qDiv);
+        });
+
+        function handleAnswer(qIndex, selectedOptIndex, btnEl) {
+            if (answeredQuestions.has(qIndex)) return;
+            answeredQuestions.add(qIndex);
+
+            const isCorrect = selectedOptIndex === quizData[qIndex].answer;
+            const optionsContainer = document.getElementById(`options-${qIndex}`);
+            const buttons = optionsContainer.querySelectorAll('.quiz-option');
+
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === quizData[qIndex].answer) {
+                    btn.classList.add('correct');
+                    btn.innerHTML += ' <span class="float-right">鉁?/span>';
+                } else if (idx === selectedOptIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                    btn.innerHTML += ' <span class="float-right">鉂?/span>';
+                }
+            });
+
+            if (isCorrect) score++;
+            scoreDisplay.textContent = `${score} / 15`;
+            document.getElementById(`exp-${qIndex}`).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
+
