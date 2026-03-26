@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>肌肉侦探 - 老年骨骼肌与运动守护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f4f7f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+        }
+        .tab-content { display: none; }
+        .tab-content.active {
+            display: block;
+            animation: fadeInTab 0.4s ease-out;
+        }
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Step Navigation Animations */
+        .step-view {
+            display: none;
+            animation: slideIn 0.4s ease-out forwards;
+        }
+        .step-view.active {
+            display: block;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* GIF Placeholder pulsing background */
+        .gif-placeholder {
+            background: linear-gradient(-45deg, #f3f4f6, #e0e7ff, #ede9fe, #f3f4f6);
+            background-size: 400% 400%;
+            animation: pulseBg 4s ease infinite;
+        }
+        @keyframes pulseBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Quiz Styles */
+        .quiz-option { transition: all 0.3s ease; }
+        .quiz-option.selected { border-color: #4ECDC4; background-color: #e6f9f7; }
+        .quiz-option.correct { border-color: #4CAF50; background-color: #E8F5E9; color: #2E7D32; }
+        .quiz-option.incorrect { border-color: #F44336; background-color: #FFEBEE; color: #C62828; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased pb-24">
+
+    <!-- Header -->
+    <header class="bg-gradient-primary rounded-b-[40px] p-6 pt-10 shadow-sm relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">肌肉侦探 🕵️‍♂️</h1>
+            <p class="text-gray-800 text-sm font-medium opacity-80">体验身体发力，解码长者运动障碍</p>
+        </div>
+        <div class="absolute right-[-10px] top-[10px] opacity-20 transform rotate-12">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex justify-around bg-white mx-4 mt-[-20px] relative z-20 rounded-2xl shadow-md p-1">
+        <button onclick="switchTab('activity')" class="tab-btn active w-1/3 py-3 text-sm font-bold text-[#FF6B6B] rounded-xl transition-colors" id="btn-activity">课堂活动</button>
+        <button onclick="switchTab('cases')" class="tab-btn w-1/3 py-3 text-sm font-bold text-gray-400 hover:text-gray-600 rounded-xl transition-colors" id="btn-cases">案例变化</button>
+        <button onclick="switchTab('quiz')" class="tab-btn w-1/3 py-3 text-sm font-bold text-gray-400 hover:text-gray-600 rounded-xl transition-colors" id="btn-quiz">随堂测试</button>
+    </nav>
+
+    <main class="mt-6 px-4">
+
+        <!-- ================= TAB 1: 课堂活动 (分步引导) ================= -->
+        <section id="activity" class="tab-content active">
+            
+            <!-- Step Indicators -->
+            <div class="flex justify-center items-center space-x-2 mb-4">
+                <div class="step-dot w-2.5 h-2.5 rounded-full bg-[#FF6B6B] transition-colors" id="dot-1"></div>
+                <div class="step-dot w-2.5 h-2.5 rounded-full bg-gray-300 transition-colors" id="dot-2"></div>
+                <div class="step-dot w-2.5 h-2.5 rounded-full bg-gray-300 transition-colors" id="dot-3"></div>
+                <div class="step-dot w-2.5 h-2.5 rounded-full bg-gray-300 transition-colors" id="dot-4"></div>
+            </div>
+
+            <!-- STEP 1: 上臂 -->
+            <div id="step-1" class="step-view active glass-card rounded-3xl overflow-hidden pb-4">
+                <!-- 动图占位区 -->
+                <div class="w-full h-56 relative border-b border-gray-100 bg-gray-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="肱二头肌收缩" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col items-center justify-end pb-4">
+                        <span class="text-sm font-bold text-white bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shadow-sm flex items-center">
+                            <span class="text-lg mr-2">💪</span> 肱二头肌发力演示
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded">部位 1 / 4</span>
+                        <h2 class="text-xl font-bold flex-1 ml-3">上臂肌群</h2>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-4 mb-4 border border-yellow-100">
+                        <h3 class="text-sm font-bold text-yellow-800 mb-1 flex items-center"><span class="mr-1">🎯</span> 探案指令</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">请用力弯曲你的手臂，摸一摸上臂前侧感受<span class="font-bold text-[#FF6B6B]">肱二头肌</span>的隆起；紧接着用力伸直手臂，感受上臂后侧<span class="font-bold text-[#FF6B6B]">肱三头肌</span>变硬。</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-l-3 border-[#4ECDC4] pl-2 flex items-center"><span class="bg-[#4ECDC4] w-1.5 h-4 inline-block mr-2 rounded-sm"></span>长者动作配合</h3>
+                        <p class="text-sm text-gray-600">日常的<span class="font-bold">自己吃饭、梳头、洗脸</span>都需要二头肌发力弯曲手臂；而要想<span class="font-bold">用双手撑住轮椅扶手站起来</span>，则极度依赖肱三头肌的推力。</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-red-600 mb-2 border-l-3 border-red-500 pl-2 flex items-center"><span class="bg-red-500 w-1.5 h-4 inline-block mr-2 rounded-sm"></span>功能丧失影响</h3>
+                        <p class="text-sm text-gray-600">若该区域肌肉萎缩，老人将<span class="font-bold text-red-500">无法独立进食（连把勺子送到嘴边都困难）</span>，且在起立或移位时上肢无法提供支撑，极度依赖照护者搬抱。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: 大腿 -->
+            <div id="step-2" class="step-view glass-card rounded-3xl overflow-hidden pb-4">
+                <div class="w-full h-56 relative border-b border-gray-100 bg-gray-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1434682881908-b43d0467b798?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="坐在椅子上伸直小腿" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col items-center justify-end pb-4">
+                        <span class="text-sm font-bold text-white bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shadow-sm flex items-center">
+                            <span class="text-lg mr-2">🦵</span> 腿部抗阻发力演示
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded">部位 2 / 4</span>
+                        <h2 class="text-xl font-bold flex-1 ml-3">大腿前侧（长寿肌）</h2>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-4 mb-4 border border-yellow-100">
+                        <h3 class="text-sm font-bold text-yellow-800 mb-1 flex items-center"><span class="mr-1">🎯</span> 探案指令</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">请端坐在椅子上，将小腿用力往前水平踢直，用手按压大腿前侧，感受<span class="font-bold text-[#FF6B6B]">股四头肌</span>极其强烈的收缩发硬。</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-l-3 border-[#4ECDC4] pl-2 flex items-center"><span class="bg-[#4ECDC4] w-1.5 h-4 inline-block mr-2 rounded-sm"></span>长者动作配合</h3>
+                        <p class="text-sm text-gray-600">这是人体的“抗重力肌”。长者从坐式马桶上<span class="font-bold">起立、爬楼梯向上跨步、以及站立时维持膝盖不弯曲</span>，都全靠它输出力量。</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-red-600 mb-2 border-l-3 border-red-500 pl-2 flex items-center"><span class="bg-red-500 w-1.5 h-4 inline-block mr-2 rounded-sm"></span>功能丧失影响</h3>
+                        <p class="text-sm text-gray-600">发生肌少症时，老人会表现出严重的<span class="font-bold text-red-500">“腿打软”</span>，从沙发里根本站不起来；下楼梯时由于离心力量不足，控制不住身体下降速度，极易造成严重跌倒骨折。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: 小腿 -->
+            <div id="step-3" class="step-view glass-card rounded-3xl overflow-hidden pb-4">
+                <div class="w-full h-56 relative border-b border-gray-100 bg-gray-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1552674605-15c1e330f160?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="踮脚尖与勾脚尖" class="w-full h-full object-cover" style="object-position: center bottom;">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col items-center justify-end pb-4">
+                        <span class="text-sm font-bold text-white bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shadow-sm flex items-center">
+                            <span class="text-lg mr-2">🦶</span> 足背屈/足跖屈演示
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded">部位 3 / 4</span>
+                        <h2 class="text-xl font-bold flex-1 ml-3">小腿肌群（平衡器）</h2>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-4 mb-4 border border-yellow-100">
+                        <h3 class="text-sm font-bold text-yellow-800 mb-1 flex items-center"><span class="mr-1">🎯</span> 探案指令</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">站立时用力踮起脚尖，感受后侧<span class="font-bold text-[#FF6B6B]">小腿三头肌</span>收紧；换成坐姿，脚跟触地用力向上勾脚尖，摸摸小腿前侧的<span class="font-bold text-[#FF6B6B]">胫骨前肌</span>发酸。</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-l-3 border-[#4ECDC4] pl-2 flex items-center"><span class="bg-[#4ECDC4] w-1.5 h-4 inline-block mr-2 rounded-sm"></span>长者动作配合</h3>
+                        <p class="text-sm text-gray-600">小腿后侧负责走路时向前的蹬地推进力；而小腿前侧肌肉负责在走路迈步时<span class="font-bold">把脚尖抬高</span>，避免刮蹭地面。</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-red-600 mb-2 border-l-3 border-red-500 pl-2 flex items-center"><span class="bg-red-500 w-1.5 h-4 inline-block mr-2 rounded-sm"></span>功能丧失影响</h3>
+                        <p class="text-sm text-gray-600">此功能退化极易导致<span class="font-bold text-red-500">“足下垂”</span>。老人走路会变成“拖着地走”，步幅变极小，遇到地毯边缘或小门槛时脚尖无法有效抬起抬高，是平地摔跤的第一大元凶。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: 躯干核心 -->
+            <div id="step-4" class="step-view glass-card rounded-3xl overflow-hidden pb-4">
+                <div class="w-full h-56 relative border-b border-gray-100 bg-gray-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="收腹挺胸直立" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col items-center justify-end pb-4">
+                        <span class="text-sm font-bold text-white bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shadow-sm flex items-center">
+                            <span class="text-lg mr-2">🧘‍♂️</span> 核心肌群支撑演示
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded">部位 4 / 4</span>
+                        <h2 class="text-xl font-bold flex-1 ml-3">核心肌群（躯干支柱）</h2>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-4 mb-4 border border-yellow-100">
+                        <h3 class="text-sm font-bold text-yellow-800 mb-1 flex items-center"><span class="mr-1">🎯</span> 探案指令</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">坐在椅子上不要靠椅背，深吸气用力挺直躯干，收紧腹部，感受<span class="font-bold text-[#FF6B6B]">竖脊肌和腹肌</span>如何像紧身衣一样绷紧支撑你的脊柱。</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-l-3 border-[#4ECDC4] pl-2 flex items-center"><span class="bg-[#4ECDC4] w-1.5 h-4 inline-block mr-2 rounded-sm"></span>长者动作配合</h3>
+                        <p class="text-sm text-gray-600">无论坐、站、走，腹背部肌肉都像钢索一样维持身体的直立体态，并在身体发生倾斜时瞬间发力把人拉回来。</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-red-600 mb-2 border-l-3 border-red-500 pl-2 flex items-center"><span class="bg-red-500 w-1.5 h-4 inline-block mr-2 rounded-sm"></span>功能丧失影响</h3>
+                        <p class="text-sm text-gray-600">核心无力会导致严重的<span class="font-bold text-red-500">含胸驼背</span>，这不仅影响呼吸，更导致长者身体重心过度前倾，加上下肢力量弱，如同“摇摇欲坠的高塔”，极易向前惨烈摔倒。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-between mt-6">
+                <button onclick="prevStep()" id="btn-prev" class="px-6 py-3 rounded-xl font-bold text-gray-600 bg-white border border-gray-200 shadow-sm disabled:opacity-50 disabled:bg-gray-50 flex items-center" disabled>
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>上一步
+                </button>
+                <button onclick="nextStep()" id="btn-next" class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#FF6B6B] to-[#FF8E8E] shadow-md shadow-red-200 flex items-center">
+                    下一步<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 2: 案例变化 (分开展示并配套图示剖析) ================= -->
+        <section id="cases" class="tab-content">
+            
+            <!-- CASE 1 -->
+            <div class="glass-card rounded-3xl overflow-hidden mb-8 shadow-sm">
+                <!-- 头部图示：行为动作图 + 对应肌肉萎缩动图占位 -->
+                <div class="h-48 flex w-full">
+                    <div class="w-1/2 bg-gray-200 relative">
+                        <!-- 老人起立困难的现实动作图 -->
+                        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1516841273335-e39b37888115?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80'); opacity: 0.8;"></div>
+                        <div class="absolute bottom-2 left-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded">起立困难动作演示图</div>
+                    </div>
+                    <div class="w-1/2 bg-gray-200 border-l border-white relative overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="股四头肌内部脂肪浸润" class="w-full h-full object-cover opacity-90">
+                        <div class="absolute inset-0 bg-indigo-900/30 flex flex-col justify-end p-2">
+                            <span class="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded text-center shadow-sm">
+                                🔬 萎缩：肌肉脂肪浸润
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md">案例 01</span>
+                        <h2 class="text-lg font-bold">王爷爷的“沙发困境”</h2>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-3 mb-4 flex">
+                        <span class="text-2xl mr-2">👴</span>
+                        <p class="text-sm text-gray-600 italic">“我现在最怕坐低矮的软沙发。一旦坐下去了就起不来，非得有人使劲拽我一把，或者拿拐杖撑大半天。总觉得两条大腿上一点儿力气都使不上。”</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-sm font-bold text-[#FF6B6B] flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 侦探原理解析</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed text-justify">
+                            这并非单单是“骨头老了”，其核心原因是由于**老年肌少症**导致的<span class="font-bold underline text-gray-800">股四头肌（大腿前侧）大量萎缩</span>。起立动作需要大腿前侧肌肉进行强大的向心收缩来抵抗数倍于体重的重力。
+                        </p>
+                        <p class="text-sm text-gray-600 leading-relaxed text-justify">
+                            此外，显微镜下的动图显示，王爷爷的肌肉纤维间出现了严重的<span class="font-bold text-[#FF6B6B]">“脂肪组织浸润”</span>——好肉变成了脂肪，导致肌肉犹如“发胀的面包”，外观看似没变细，但已经失去了收缩的绝对力量。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CASE 2 -->
+            <div class="glass-card rounded-3xl overflow-hidden mb-6 shadow-sm">
+                <!-- 头部图示：行为动作图 + 对应肌肉萎缩动图占位 -->
+                <div class="h-48 flex w-full">
+                    <div class="w-1/2 bg-gray-200 relative overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1542385151-efd9000785a0?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="胫骨前肌无力导致足背屈受限" class="w-full h-full object-cover opacity-90">
+                        <div class="absolute inset-0 bg-teal-900/30 flex flex-col justify-end p-2">
+                            <span class="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded text-center shadow-sm">
+                                🦶 胫骨前肌退化演示
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-1/2 bg-gray-200 relative border-l border-white">
+                        <!-- 老人步态不稳平地绊倒图 -->
+                        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1543333995-a78aea2efa50?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80'); opacity: 0.8; transform: scaleX(-1);"></div>
+                        <div class="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded">异常步态及绊倒演示</div>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-md">案例 02</span>
+                        <h2 class="text-lg font-bold">李奶奶的“惊险门槛”</h2>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-3 mb-4 flex">
+                        <span class="text-2xl mr-2">👵</span>
+                        <p class="text-sm text-gray-600 italic">“我现在走路总觉得脚就像灌了铅，压根抬不起来，只能贴着蹭地走。昨天就在小区平路上，不小心刮到一点点地砖凸起，整个人就往前扑，差点摔骨折。”</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-sm font-bold text-[#4ECDC4] flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 侦探原理解析</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed text-justify">
+                            这种典型的“拖沓步态”是由于控制脚尖向上抬起的<span class="font-bold underline text-gray-800">小腿前侧肌肉（胫骨前肌）</span>力量严重衰退。正常人跨步时会本能地抬起脚尖完成“廓清”，而李奶奶丧失了该功能，导致微小的障碍物都能将其绊倒。
+                        </p>
+                        <p class="text-sm text-gray-600 leading-relaxed text-justify">
+                            不仅如此，李奶奶体内负责快速反应的<span class="font-bold text-blue-500">快缩肌纤维（II型肌纤维）大量流失</span>，这导致她在被绊倒的瞬间，神经即使下达了指令，肌肉也来不及做出迅速收缩来调整身体平衡制止摔倒。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ================= TAB 3: 随堂测试 (保持原逻辑) ================= -->
+        <section id="quiz" class="tab-content">
+            <div class="glass-card rounded-3xl p-6 mb-8 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold mb-1">随堂随练 📝</h2>
+                        <p class="text-xs text-gray-500">做对题目揭晓解析原理</p>
+                    </div>
+                    <div class="bg-white border rounded-xl px-4 py-2 shadow-sm text-center">
+                        <div class="text-[10px] text-gray-400 font-bold mb-0.5 uppercase tracking-wide">得分</div>
+                        <div class="text-xl font-black text-[#FF6B6B]" id="score-display">0<span class="text-sm text-gray-400 font-normal">/15</span></div>
+                    </div>
+                </div>
+                
+                <div id="quiz-container" class="space-y-8">
+                    <!-- Questions injected via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        /* ====== Tabs Logic ====== */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-[#FF6B6B]');
+                btn.classList.add('text-gray-400');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById(`btn-${tabId}`).classList.add('text-[#FF6B6B]');
+            document.getElementById(`btn-${tabId}`).classList.remove('text-gray-400');
+        }
+
+        /* ====== Step Navigation Logic (Activity) ====== */
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function updateStepView() {
+            // Update views
+            document.querySelectorAll('.step-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            
+            // Update dots
+            document.querySelectorAll('.step-dot').forEach((el, index) => {
+                if(index + 1 === currentStep) {
+                    el.classList.add('bg-[#FF6B6B]');
+                    el.classList.remove('bg-gray-300');
+                } else {
+                    el.classList.add('bg-gray-300');
+                    el.classList.remove('bg-[#FF6B6B]');
+                }
+            });
+
+            // Update buttons
+            document.getElementById('btn-prev').disabled = currentStep === 1;
+            
+            let btnNext = document.getElementById('btn-next');
+            if (currentStep === totalSteps) {
+                btnNext.innerHTML = '看案例分析 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>';
+            } else {
+                btnNext.innerHTML = '下一步 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>';
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepView();
+            } else {
+                // Navigate to next tab if at the end
+                switchTab('cases');
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepView();
+            }
+        }
+
+        /* ====== Quiz Logic ====== */
+        const quizData = [
+            {
+                q: "1. 随着年龄增长，老年人最容易流失、且对预防跌倒至关重要的骨骼肌主要集中在哪个部位？",
+                options: ["上肢", "下肢", "颈部", "面部"],
+                answer: 1,
+                explanation: "下肢肌肉（如股四头肌、小腿三头肌）承载全身重量并维持平衡，老年人下肢肌肉流失最为明显且危险。"
+            },
+            {
+                q: "2. 在“肌肉侦探”活动中，若发现王奶奶从较低的马桶上起立非常困难，这主要与哪块肌肉力量严重减弱有关？",
+                options: ["肱二头肌", "背阔肌", "股四头肌", "腹外斜肌"],
+                answer: 2,
+                explanation: "股四头肌（大腿前侧）的主要功能是在起立、上楼梯时伸直膝关节，被称为抗重力肌。"
+            },
+            {
+                q: "3. 张爷爷平时走路总喜欢“拖着脚走”，极易被地毯边缘绊倒。这通常是因为负责向上抬起脚尖的哪部分肌肉群无力？",
+                options: ["小腿前侧肌群 (如胫骨前肌)", "大腿后侧肌群 (如股二头肌)", "臀大肌", "胸大肌"],
+                answer: 0,
+                explanation: "小腿前侧肌肉负责足背屈（抬脚尖），力量下降会导致走路时下脚无力、拖沓，增加绊倒风险。"
+            },
+            {
+                q: "4. 老年人经常出现“含胸驼背”的体态改变，除了骨骼退化外，主要是因为哪部分肌肉萎缩无力，无法对抗重力将身体拉直？",
+                options: ["腹部肌肉 (腹直肌)", "大腿前侧 (股四头肌)", "背部核心维持肌群 (如竖脊肌等)", "肩部肌群 (三角肌)"],
+                answer: 2,
+                explanation: "背部肌肉负责使脊柱后伸和维持直立姿势，力量衰退会导致脊柱越来越向前弯曲而驼背。"
+            },
+            {
+                q: "5. 股二头肌在下肢运动中起重要作用。如果一位长者的股二头肌和臀部肌群力量不足，他在进行哪项活动时最容易感到控制不住身体？",
+                options: ["躺在床上翻身", "下楼梯或下坡", "伸手拿高处物品", "平地缓慢行走"],
+                answer: 1,
+                explanation: "下楼梯和下坡需要大腿后侧肌群做“离心收缩”来控制身体下降的速度，这部分肌肉无力极易导致下楼时腿软摔倒。"
+            },
+            {
+                q: "6. 腓肠肌/比目鱼肌（小腿后侧肌肉）在日常生活中最重要的作用是什么？",
+                options: ["弯曲手臂", "挺直腰板", "保持站立平衡和踮起脚尖行走", "转动头部"],
+                answer: 2,
+                explanation: "这部分肌肉负责足跖屈（踮脚尖），在人类直立行走蹬地发力以及身体前倾时拉住身体防倒中发挥核心作用。"
+            },
+            {
+                q: "7. 在照护需要使用轮椅的半失能长者时，护理员鼓励长者锻炼上臂的肱三头肌，主要目的是为了改善哪项能力？",
+                options: ["梳头", "使用筷子吃饭", "用手撑住轮椅扶手调整坐姿或站起", "扣衣服扣子"],
+                answer: 2,
+                explanation: "肱三头肌负责伸直手臂，长者在撑扶手起身或转移体位时都需要强大的臂部伸展力量。"
+            },
+            {
+                q: "8. 所谓的“老年性肌少症”（Sarcopenia），除了骨骼肌质量减少外，还强调哪两项指标的显著下降？",
+                options: ["肌肉体积和水分", "肌肉力量和身体功能（如步速）", "肌肉弹性与颜色", "骨密度与关节滑液"],
+                answer: 1,
+                explanation: "肌少症的诊断不仅看肌肉量，更重要的是评估肌肉力量（如握力）和身体功能表现（如日常走路速度）。"
+            },
+            {
+                q: "9. 指导老年人进行腹部肌肉触诊时，除了体会发力，还应告知老年人保持一定腹肌力量主要是为了什么？",
+                options: ["拥有肌肉线条", "增加消化液分泌", "维持躯干核心稳定，保护腰椎预防腰痛", "促进心脏跳动"],
+                answer: 2,
+                explanation: "腹肌与背肌共同构成身体核心，像“束腰带”一样稳定脊柱，核心无力是导致长者慢性腰痛的重要原因。"
+            },
+            {
+                q: "10. 李奶奶抱怨最近毛巾总是拧不干，广口瓶盖也打不开。这反映了前臂和手部肌肉退化，通常在评估时测试它的典型指标是？",
+                options: ["体重测试", "肺活量测试", "握力测试", "血压测试"],
+                answer: 2,
+                explanation: "握力是评估全身上肢肌肉力量非常简便且有效的金标准指标，也与整体健康预后高度相关。"
+            },
+            {
+                q: "11. 随着衰老，老年人体内肌肉不仅量变少，还会被哪种组织逐渐“悄悄”浸润替代，导致肌肉变得“松垮无力”？",
+                options: ["结缔组织", "脂肪组织", "淋巴组织", "软骨组织"],
+                answer: 1,
+                explanation: "肌内脂肪浸润是骨骼肌老化的典型微观特征，导致肌肉“质量变差”，力量大幅下降。"
+            },
+            {
+                q: "12. 以下哪项运动最适合作为长者在看电视时坐着进行的下肢主要肌群锻炼？",
+                options: ["快速甩腿", "坐姿缓慢交替伸直、抬平小腿并保持3秒", "身体剧烈扭转", "连续深蹲"],
+                answer: 1,
+                explanation: "坐姿抗阻抬腿是安全且有效锻炼股四头肌的方法，动作需缓慢可控，避免快速剧烈动作损伤关节。"
+            },
+            {
+                q: "13. 养老护理人员在带领长者做“肌肉侦探”动作体验或活动指导时，最需要关注的安全原则是？",
+                options: ["要求每个人动作幅度都必须标准", "追求力量最大化", "动作缓慢受控，不引起疼痛，量力而行", "必须达到气喘吁吁的程度才停下"],
+                answer: 2,
+                explanation: "老年人关节退化且可能有骨质疏松，活动必须以安全、不引起疼痛为底线，切忌攀比和过度发力。"
+            },
+            {
+                q: "14. 长者随着年龄增加，哪种类型的肌肉纤维萎缩的比例和速度最为严重？",
+                options: ["慢肌纤维 (负责耐力)", "快肌纤维 (负责爆发力和快速反应)", "心肌纤维", "平滑肌纤维"],
+                answer: 1,
+                explanation: "人在衰老过程中，负责快速反应和爆发力的Ⅱ型快缩肌纤维萎缩最严重，这就是为什么老年人遇到突发情况（如滑倒）时来不及做出迅速反应收缩肌肉来保护自己。"
+            },
+            {
+                q: "15. 作为养老服务人员，要评估社区内老年人下肢肌肉的综合体质状况，最不需要借助复杂仪器的实用快速评估法是？",
+                options: ["核磁共振显像", "血液生化检查", "5次椅子起立测试 / 步速测试", "心电图测试"],
+                answer: 2,
+                explanation: "椅子起立测试和步速测试在临床和社区养老中被广泛用于快速筛查老年人下肢肌力衰退及跌倒风险。"
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const quizContainer = document.getElementById('quiz-container');
+        const scoreDisplay = document.getElementById('score-display');
+
+        quizData.forEach((item, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'quiz-question border border-gray-100 rounded-2xl p-5 bg-white mb-4 shadow-sm relative overflow-hidden';
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `<button class="quiz-option w-full text-left p-3 mt-2 rounded-xl border-2 border-gray-100 text-sm font-medium hover:border-gray-300 hover:bg-gray-50 bg-white" 
+                                onclick="handleAnswer(${index}, ${optIndex}, this)">
+                                <span class="inline-block w-6 text-gray-400">${String.fromCharCode(65 + optIndex)}.</span> ${opt}</button>`;
+            });
+
+            qDiv.innerHTML = `
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-gray-200 to-gray-100"></div>
+                <h3 class="font-bold text-gray-800 text-base leading-snug pl-2">${item.q}</h3>
+                <div class="mt-4 pl-2" id="options-${index}">
+                    ${optionsHtml}
+                </div>
+                <div class="explanation hidden mt-4 ml-2 p-4 bg-[#F2FBFA] text-gray-700 text-sm rounded-xl border border-[#4ECDC4]/30" id="exp-${index}">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-[#4ECDC4] mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div><span class="font-bold text-[#2A9D8F] block mb-1">原理解析</span>${item.explanation}</div>
+                    </div>
+                </div>
+            `;
+            quizContainer.appendChild(qDiv);
+        });
+
+        function handleAnswer(qIndex, selectedOptIndex, btnEl) {
+            if (answeredQuestions.has(qIndex)) return; // Prevent multiple clicks
+            answeredQuestions.add(qIndex);
+
+            const isCorrect = selectedOptIndex === quizData[qIndex].answer;
+            const optionsContainer = document.getElementById(`options-${qIndex}`);
+            const buttons = optionsContainer.querySelectorAll('.quiz-option');
+
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === quizData[qIndex].answer) {
+                    btn.classList.add('correct');
+                    btn.classList.remove('border-gray-100');
+                } else if (idx === selectedOptIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                    btn.classList.remove('border-gray-100');
+                }
+                btn.classList.remove('hover:bg-gray-50', 'hover:border-gray-300');
+            });
+
+            if (isCorrect) score++;
+            scoreDisplay.innerHTML = `${score}<span class="text-sm text-gray-400 font-normal">/15</span>`;
+
+            // Show explanation with animation
+            const expDiv = document.getElementById(`exp-${qIndex}`);
+            expDiv.classList.remove('hidden');
+            expDiv.classList.add('animate-[fadeInTab_0.4s_ease-out]');
+        }
+    </script>
+</body>
+</html>
