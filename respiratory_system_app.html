@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>呼吸侦探 - 老年呼吸与急救守护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f0f9ff; /* Soft sky blue tint for respiratory/air */
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #0EA5E9 0%, #6366F1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #7dd3fc 0%, #3b82f6 100%);
+        }
+        .tab-content { display: none; }
+        .tab-content.active {
+            display: block;
+            animation: fadeInTab 0.4s ease-out;
+        }
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .step-view {
+            display: none;
+            animation: slideIn 0.4s ease-out forwards;
+        }
+        .step-view.active { display: block; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .quiz-option { transition: all 0.3s ease; }
+        .quiz-option.selected { border-color: #0EA5E9; background-color: #e0f2fe; }
+        .quiz-option.correct { border-color: #0284c7; background-color: #bae6fd; color: #0369a1; }
+        .quiz-option.incorrect { border-color: #EF4444; background-color: #fef2f2; color: #991b1b; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased pb-24">
+
+    <!-- Header -->
+    <header class="bg-gradient-primary rounded-b-[40px] p-6 pt-10 shadow-sm relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-bold text-white mb-2 shadow-sm drop-shadow-md">呼吸侦探 🫁</h1>
+            <p class="text-white text-sm font-medium opacity-90 drop-shadow-sm">揭开气息的秘密，把握急救黄金三分钟</p>
+        </div>
+        <div class="absolute right-[-10px] top-[10px] opacity-20 transform rotate-12 text-white">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex justify-around bg-white mx-4 mt-[-20px] relative z-20 rounded-2xl shadow-md p-1">
+        <button onclick="switchTab('activity')" class="tab-btn active w-1/3 py-3 text-sm font-bold text-[#0EA5E9] rounded-xl transition-colors" id="btn-activity">气息之旅</button>
+        <button onclick="switchTab('cases')" class="tab-btn w-1/3 py-3 text-sm font-bold text-gray-400 hover:text-gray-600 rounded-xl transition-colors" id="btn-cases">急救探案</button>
+        <button onclick="switchTab('quiz')" class="tab-btn w-1/3 py-3 text-sm font-bold text-gray-400 hover:text-gray-600 rounded-xl transition-colors" id="btn-quiz">随堂测试</button>
+    </nav>
+
+    <main class="mt-6 px-4">
+
+        <!-- ================= TAB 1: 课堂活动 (分步引导) ================= -->
+        <section id="activity" class="tab-content active">
+            
+            <!-- Step Indicators -->
+            <div class="flex justify-center items-center space-x-2 mb-4">
+                <div class="step-dot w-2.5 h-2.5 rounded-full bg-[#0EA5E9] transition-colors" id="dot-1"></div>
+                <div class="step-dot w-2.5 h-2.5 rounded-full bg-gray-300 transition-colors" id="dot-2"></div>
+                <div class="step-dot w-2.5 h-2.5 rounded-full bg-gray-300 transition-colors" id="dot-3"></div>
+                <div class="step-dot w-2.5 h-2.5 rounded-full bg-gray-300 transition-colors" id="dot-4"></div>
+            </div>
+
+            <!-- STEP 1: 鼻与喉 -->
+            <div id="step-1" class="step-view active glass-card rounded-3xl overflow-hidden pb-4 relative">
+                <div class="w-full h-56 relative border-b border-gray-100 bg-gray-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1584050160275-01e4a6d4ee27?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="呼吸与喉部" class="w-full h-full object-cover object-center">
+                    <div class="absolute inset-0 bg-gradient-to-t from-sky-900/60 to-transparent flex flex-col items-center justify-end pb-4">
+                        <span class="text-sm font-bold text-white bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shadow-sm flex items-center">
+                            <span class="text-lg mr-2">👃</span> 上呼吸道 (净化与发音)
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-sky-100 text-sky-700 text-xs font-bold px-2 py-1 rounded">第 1 站 / 共 4 站</span>
+                        <h2 class="text-xl font-bold flex-1 ml-3 text-gray-800">过滤网与保险闸</h2>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-4 mb-4 border border-yellow-100">
+                        <h3 class="text-sm font-bold text-yellow-800 mb-1 flex items-center"><span class="mr-1">🎯</span> 探案体验</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">闭上嘴深吸一口气，感受鼻腔内的清凉；随后用手轻触脖子正中部的“喉结”（甲状软骨）并发出“啊”的声音，感受震动。</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-l-3 border-[#0EA5E9] pl-2 flex items-center"><span class="bg-[#0EA5E9] w-1.5 h-4 inline-block mr-2 rounded-sm"></span>长者退化表现</h3>
+                        <p class="text-sm text-gray-600">鼻腔黏膜萎缩（过滤、加湿加温空气能力差）；喉软骨老化钙化，声音变得浑浊；最致命的是<span class="font-bold text-sky-600">会厌软骨的关闭神经极不稳定</span>。</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-red-600 mb-2 border-l-3 border-red-500 pl-2 flex items-center"><span class="bg-red-500 w-1.5 h-4 inline-block mr-2 rounded-sm"></span>严重丧失影响</h3>
+                        <p class="text-sm text-gray-600">空气中的病菌因为鼻腔过滤差长驱直入；由于会厌软骨和环杓关节反应迟钝，吃东西经常无法闭合气管口，引发<span class="font-bold text-red-500">极其凶险的老死元凶——误吸与吸入性肺炎</span>。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: 气管与主支气管 -->
+            <div id="step-2" class="step-view glass-card rounded-3xl overflow-hidden pb-4">
+                <div class="w-full h-56 relative border-b border-gray-100 bg-gray-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1583912265924-ce814041b311?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="气管解剖" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-sky-900/60 to-transparent flex flex-col items-center justify-end pb-4">
+                        <span class="text-sm font-bold text-white bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shadow-sm flex items-center">
+                            <span class="text-lg mr-2">🪜</span> 分叉的生命气道
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-sky-100 text-sky-700 text-xs font-bold px-2 py-1 rounded">第 2 站 / 共 4 站</span>
+                        <h2 class="text-xl font-bold flex-1 ml-3 text-gray-800">气管与支气管</h2>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-4 mb-4 border border-yellow-100">
+                        <h3 class="text-sm font-bold text-yellow-800 mb-1 flex items-center"><span class="mr-1">🎯</span> 探案体验</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">在胸骨柄正中靠下的位置，想象一根主水管在这里分成了两截。这叫<span class="font-bold text-[#0EA5E9]">气管隆嵴</span>，也是引发剧烈咳嗽的“报警器”。</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-l-3 border-[#0EA5E9] pl-2 flex items-center"><span class="bg-[#0EA5E9] w-1.5 h-4 inline-block mr-2 rounded-sm"></span>必须记住的解剖差异</h3>
+                        <p class="text-sm text-gray-600">左主支气管<span class="font-bold">细、长、平</span>；而右主支气管<span class="font-bold text-sky-600">粗、短、直</span>（与中线夹角小），犹如一个笔直的无底洞。</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-orange-600 mb-2 border-l-3 border-orange-500 pl-2 flex items-center"><span class="bg-orange-500 w-1.5 h-4 inline-block mr-2 rounded-sm"></span>临床定位意义</h3>
+                        <p class="text-sm text-gray-600">临床接诊老人呛入了假牙、花生米，因为解剖特点，几乎<span class="font-bold text-orange-600">90%以上的异物都会直接滑进“右主支气管”</span>。拍片时医生往往直奔右侧寻找。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: 肺部 -->
+            <div id="step-3" class="step-view glass-card rounded-3xl overflow-hidden pb-4">
+                <div class="w-full h-56 relative border-b border-gray-100 bg-gray-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="肺部氧气交换" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-sky-900/60 to-transparent flex flex-col items-center justify-end pb-4">
+                        <span class="text-sm font-bold text-white bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shadow-sm flex items-center">
+                            <span class="text-lg mr-2">🎈</span> 肺脏 (氧气交换站)
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-sky-100 text-sky-700 text-xs font-bold px-2 py-1 rounded">第 3 站 / 共 4 站</span>
+                        <h2 class="text-xl font-bold flex-1 ml-3 text-gray-800">左二右三的肺叶</h2>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-4 mb-4 border border-yellow-100">
+                        <h3 class="text-sm font-bold text-yellow-800 mb-1 flex items-center"><span class="mr-1">🎯</span> 探案体验</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">双手放在胸廓外侧，做一次极其深长的呼吸，感受如同两团海绵一般的肺被空气猛烈撑开的感觉。</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-l-3 border-[#0EA5E9] pl-2 flex items-center"><span class="bg-[#0EA5E9] w-1.5 h-4 inline-block mr-2 rounded-sm"></span>长者退化表现</h3>
+                        <p class="text-sm text-gray-600">由于因为左侧有心脏（占了部分空间），所以<span class="font-bold">左肺分为两叶，右肺分为三叶</span>。老年人极其容易发生“老年性肺气肿”，肺泡缺乏弹性变拉跨，如同失去弹性的破旧气球。</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-red-600 mb-2 border-l-3 border-red-500 pl-2 flex items-center"><span class="bg-red-500 w-1.5 h-4 inline-block mr-2 rounded-sm"></span>严重丧失影响</h3>
+                        <p class="text-sm text-gray-600">大量残余气体滞留在肺泡中排不出去（残气量增加），导致新鲜氧气进不去，导致老人日常只要<span class="font-bold text-red-600">稍微爬两步楼梯就会极其强烈的气促、喘不上气</span>。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: 胸膜腔与呼吸动力 -->
+            <div id="step-4" class="step-view glass-card rounded-3xl overflow-hidden pb-4">
+                <div class="w-full h-56 relative border-b border-gray-100 bg-gray-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1532454655-4a1e9c5f6e8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="呼吸动力" class="w-full h-full object-cover grayscale-[30%]">
+                    <div class="absolute inset-0 bg-gradient-to-t from-sky-900/60 to-transparent flex flex-col items-center justify-end pb-4">
+                        <span class="text-sm font-bold text-white bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shadow-sm flex items-center">
+                            <span class="text-lg mr-2">⚙️</span> 胸膜与呼吸肌 (动力马达)
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-sky-100 text-sky-700 text-xs font-bold px-2 py-1 rounded">第 4 站 / 共 4 站</span>
+                        <h2 class="text-xl font-bold flex-1 ml-3 text-gray-800">负压与横膈膜</h2>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-4 mb-4 border border-yellow-100">
+                        <h3 class="text-sm font-bold text-yellow-800 mb-1 flex items-center"><span class="mr-1">🎯</span> 探案体验</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">一手摸胸口，一手平放腹部。深吸气时，你能发觉并不是肺自己会主动吸气，而是靠肋间肌向外拉拽和膈肌下降，产生“负压”将空气吸入。</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-l-3 border-[#0EA5E9] pl-2 flex items-center"><span class="bg-[#0EA5E9] w-1.5 h-4 inline-block mr-2 rounded-sm"></span>长者退化表现</h3>
+                        <p class="text-sm text-gray-600">肋软骨钙化变硬，胸膜腔的负压吸力衰退，呼吸极度依赖薄弱的膈肌运动（导致胸部变宽呈桶状胸）；胸膜隐窝极易积液。</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-blue-600 mb-2 border-l-3 border-blue-500 pl-2 flex items-center"><span class="bg-blue-500 w-1.5 h-4 inline-block mr-2 rounded-sm"></span>排痰阻碍</h3>
+                        <p class="text-sm text-gray-600">由于呼吸动力肌肉萎缩，加上气管纤毛摆动无力，老人一旦被病菌侵入，<span class="font-bold text-blue-600">痰液极难靠咳嗽咳出来（常常咳出微弱的破碎音）</span>，需要护理员配合拍背甚至翻身吸痰。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-between mt-6">
+                <button onclick="prevStep()" id="btn-prev" class="px-5 py-3 rounded-xl font-bold text-sky-700 bg-white border border-sky-200 shadow-sm disabled:opacity-50 disabled:bg-gray-50 flex items-center transition" disabled>
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>上一站
+                </button>
+                <button onclick="nextStep()" id="btn-next" class="px-5 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#0EA5E9] to-[#3B82F6] shadow-md shadow-sky-200 flex items-center transition hover:scale-105">
+                    下一站的旅程<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 2: 案例变化 ================= -->
+        <section id="cases" class="tab-content">
+            
+            <!-- CASE 1 -->
+            <div class="glass-card rounded-3xl overflow-hidden mb-8 shadow-sm">
+                <div class="h-48 flex w-full">
+                    <div class="w-1/2 bg-gray-200 relative overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="主支气管异物X光" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-blue-900/40 flex flex-col justify-end p-2">
+                            <span class="text-[11px] font-bold text-white bg-black/60 px-2 py-1 rounded text-center shadow-sm">
+                                🩻 胸部X光见“右肺阴影”
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-1/2 bg-gray-200 border-l border-white relative">
+                        <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="气管解剖对比" class="w-full h-full object-cover opacity-90">
+                        <div class="absolute bottom-2 right-2 bg-orange-600/80 text-white text-[10px] px-2 py-0.5 rounded shadow">解剖差异导致异物偏向右侧</div>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <span class="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-md">案例 01</span>
+                        <h2 class="text-lg font-bold text-gray-800">张爷爷的“右侧肺危机”</h2>
+                    </div>
+                    
+                    <div class="bg-orange-50 rounded-xl p-3 mb-4 flex border border-orange-100">
+                        <span class="text-2xl mr-2">👴</span>
+                        <p class="text-sm text-orange-900 italic">“午睡时我咬着半颗带壳的大花生没咽干净就睡着了。醒来后猛地咳嗽了一阵，现在浑身发热，右边胸口更是闷痛，感觉右边肺根本不转气了。”</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-sm font-bold text-[#F59E0B] flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 急救导向与原理解析</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed text-justify">
+                            拍片后发现，张爷爷误吸的花生米毫无悬念地卡在了<span class="font-bold underline text-gray-800">右主支气管</span>。
+                        </p>
+                        <p class="text-sm text-gray-600 leading-relaxed text-justify">
+                            因为解剖学上，**右主支气管相比左侧要“粗、短且走向陡直”（仅有约20~30度的倾斜角）**，就如同一个笔直掉落的深坑。只要老人因神经控制极慢发生吸气中误吸（如睡梦中、聊天或大笑时吃豆类），异物通常长驱直入右肺，引发急性肺不张或严重感染。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CASE 2 -->
+            <div class="glass-card rounded-3xl overflow-hidden mb-6 shadow-sm">
+                <div class="h-48 flex w-full">
+                    <div class="w-1/2 bg-gray-200 relative overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1549890733-1b919d854ef2?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="惊恐" class="w-full h-full object-cover">
+                        <div class="absolute bottom-2 left-2 bg-red-600/80 text-white text-[10px] px-2 py-0.5 rounded shadow">面色发紫、无法咳嗽发声</div>
+                    </div>
+                    <div class="w-1/2 bg-gray-200 border-l border-white relative overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1588626639556-9a3dc5aa60b4?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="海姆立克急救" class="w-full h-full object-cover opacity-90 scale-110">
+                        <div class="absolute inset-0 bg-red-900/40 flex flex-col justify-end p-2">
+                            <span class="text-[11px] font-bold text-white bg-black/60 px-2 py-1 rounded text-center shadow-sm">
+                                🆘 启动腹部冲击(Heimlich)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md">案例 02</span>
+                        <h2 class="text-lg font-bold text-gray-800">养老院突发事件：“无声的窒息”</h2>
+                    </div>
+                    
+                    <div class="bg-red-50 rounded-xl p-3 mb-4 flex border border-red-100">
+                        <span class="text-2xl mr-2">🚨</span>
+                        <p class="text-sm text-red-900 italic">“中午长者就餐时，78岁的半瘫痪王奶奶在吃馒头的时候突然动作僵住。她紧紧抓着喉部，张大嘴巴却发不出一丝声音（无法甚至连微弱咳声都没有），瞬间脸色变得惨白发发紫发青！”</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-sm font-bold text-[#EF4444] flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 黄金三分钟解析</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed text-justify">
+                            第一步是**判断梗阻程度**。如果老人还在剧烈咳嗽喘息，说明是未完全阻塞，应鼓励咳嗽；但像王奶奶这种根本“咳不出，脸发青”，属于最凶险的<span class="font-bold text-red-600">完全气道梗阻（声门下腔或气管主干被卡死）</span>。
+                        </p>
+                        <p class="text-sm text-gray-600 leading-relaxed text-justify">
+                            遇到这种情况，<span class="font-bold underline">绝对不可喂水、绝不能平躺或盲目拍背</span>！因为会把包子碎屑越震越深。必须立刻走到其后方实施<span class="font-bold text-red-500">海姆立克急救法（腹部冲击法）</span>，用外力使得横膈膜猛烈向上挤压增加胸膜腔负压，利用双肺残余空气把异物瞬间“喷”出喉咙。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ================= TAB 3: 随堂测试 ================= -->
+        <section id="quiz" class="tab-content">
+            <div class="glass-card rounded-3xl p-6 mb-8 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold mb-1 text-gray-800">呼吸急救测验 📝</h2>
+                        <p class="text-xs text-gray-500">考验你作为照护者的判断</p>
+                    </div>
+                    <div class="bg-white border rounded-xl px-4 py-2 shadow-sm text-center">
+                        <div class="text-[10px] text-gray-400 font-bold mb-0.5 uppercase tracking-wide">得分</div>
+                        <div class="text-xl font-black text-[#0EA5E9]" id="score-display">0<span class="text-sm text-gray-400 font-normal">/15</span></div>
+                    </div>
+                </div>
+                
+                <div id="quiz-container" class="space-y-8">
+                    <!-- Questions injected via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        /* ====== Tabs Logic ====== */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-[#0EA5E9]');
+                btn.classList.add('text-gray-400');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById(`btn-${tabId}`).classList.add('text-[#0EA5E9]');
+            document.getElementById(`btn-${tabId}`).classList.remove('text-gray-400');
+        }
+
+        /* ====== Step Navigation Logic ====== */
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function updateStepView() {
+            document.querySelectorAll('.step-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            
+            document.querySelectorAll('.step-dot').forEach((el, index) => {
+                if(index + 1 === currentStep) {
+                    el.classList.add('bg-[#0EA5E9]');
+                    el.classList.remove('bg-gray-300');
+                } else {
+                    el.classList.add('bg-gray-300');
+                    el.classList.remove('bg-[#0EA5E9]');
+                }
+            });
+
+            document.getElementById('btn-prev').disabled = currentStep === 1;
+            
+            let btnNext = document.getElementById('btn-next');
+            if (currentStep === totalSteps) {
+                btnNext.innerHTML = '进隐秘急诊室看案例 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>';
+            } else {
+                btnNext.innerHTML = '下一站旅程 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>';
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepView();
+            } else {
+                switchTab('cases');
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepView();
+            }
+        }
+
+        /* ====== Quiz Logic ====== */
+        const quizData = [
+            {
+                q: "1. 呼吸系统主要分为呼吸道和肺。其中，临床上常说的“下呼吸道”起自哪个部位？",
+                options: ["鼻", "咽", "喉", "气管"],
+                answer: 3,
+                explanation: "上呼吸道包括鼻、咽、喉；下呼吸道是从气管以及各级支气管开始的（也就是在锁骨以下的通道）。"
+            },
+            {
+                q: "2. 在临床中，如果是右侧的额窦和上颌窦发炎，它们分别开口引流的位置是哪里？",
+                options: ["均在中鼻道", "上鼻道", "蝶筛隐窝", "下鼻道"],
+                answer: 0,
+                explanation: "上颌窦、额窦、以及前中组筛窦的开口位置都汇聚在“中鼻道”，因此中鼻道容易积聚脓液。"
+            },
+            {
+                q: "3. 喉部软骨中有一个起着“活门保险闸”般重要作用的解剖结构，每次吞咽必须遮盖住气管，它是？",
+                options: ["甲状软骨", "环状软骨", "会厌软骨", "杓状软骨"],
+                answer: 2,
+                explanation: "会厌软骨像一片树叶状的盖子，老年人吞咽功能减退后此“盖子”封锁不及时，成为引起误吸呛咳的最主要原因。"
+            },
+            {
+                q: "4. 如果老人在养老院吃汤圆突然卡在声门中发生急性喉阻塞窒息且已昏迷发青，紧急医疗急救常常直接穿刺哪里建立临时通气道？",
+                options: ["气管软骨间隙", "环甲正中韧带", "颈动脉", "舌下腺"],
+                answer: 1,
+                explanation: "环甲正中韧带表浅且没有大血管，是急诊中建立临时快速通气孔（环甲膜穿刺术）的救命通道所在。"
+            },
+            {
+                q: "5. 某一天你发现长者自主进食时突发噎食，瞬间脸色发白、无法咳嗽、发不出声，第一步急救处理必须是？",
+                options: ["猛烈拍打后背帮他咳嗽", "端水给他冲服下去", "判断他是完全气道阻塞，立刻在其背部做海姆立克法操作(腹部冲击)", "赶紧扶他平躺下摇晃他"],
+                answer: 2,
+                explanation: "无法咳嗽和发声即属于“完全性阻塞”。切不可拍背（碎屑越拍越深），只能从后方采用海姆立克急救法（Heimlich）。"
+            },
+            {
+                q: "6. 若该长者的胸部X光显示了明显的“右肺下叶实变阴影”，最与此相关的解剖学基础是什么？",
+                options: ["左肺细、长、不垂直", "右主支气管粗、短、且走向陡直", "右肺紧贴心脏", "右侧没有肺门"],
+                answer: 1,
+                explanation: "右主支气管因为非常粗短直，走向与气管中线夹角仅20～30度，导致食物碎渣极容易笔直掉落进右肺引起吸入性肺炎。"
+            },
+            {
+                q: "7. 在气管分叉处（约平胸骨角部位），有一个向上凸起的半月状解剖标志，它是最敏感的引起咳嗽反射的部位，名为：",
+                options: ["环状软骨板", "喉室", "气管隆嵴", "声襞"],
+                answer: 2,
+                explanation: "气管隆嵴（异物落在上面会诱发极其严重的痉挛性咳嗽，是气道异物排出的最后一道防线报警器）。"
+            },
+            {
+                q: "8. 肺的分叶是因为有深深的肺裂。其中左肺分为2叶，右肺分为3叶，右肺独有的是哪一叶？",
+                options: ["上舌段", "中叶", "上叶", "下叶"],
+                answer: 1,
+                explanation: "右肺因为受肝脏向上的挤压并且偏宽，由斜裂和水平裂划分成了明确的三个叶（上叶、中叶、下叶）。"
+            },
+            {
+                q: "9. 老年人因为肌肉萎缩等原因，导致“胸膜”的某个功能大幅失效，以下关于“胸膜腔”的说法正确的是？",
+                options: ["里面装着充足的氧气", "是心脏所在的空腔", "是一个密闭腔隙，保持负压状态，吸气时可向外牵引肺", "胸膜腔底部有大量的脂肪维持温度"],
+                answer: 2,
+                explanation: "胸膜腔是个几乎没有空气的极度负压空腔，正因其负压效应，胸廓变大时才能将肺像吸盘一样拉开吸气。"
+            },
+            {
+                q: "10. 如果老人长期卧床发生胸腔积液，水往往会自然流到胸膜腔内最低凹、最深的地方。这个位置是？",
+                options: ["胸膜顶", "肋膈隐窝", "纵隔隐窝", "肺根内"],
+                answer: 1,
+                explanation: "肋膈隐窝是肋胸膜与膈胸膜相交界的深沟，即使在深吸气时肺的下缘也不能完全填满，是积液最先且最多积聚的盲区。"
+            },
+            {
+                q: "11. 喉不仅是生命通道也是发声器官，发生喉头水肿（常见过敏或老年炎症）时，哪个部位最容易肿胀狭窄勒住喉咙导致窒息？",
+                options: ["前庭襞", "喉室", "声门下腔的疏松黏膜下组织", "会厌上方"],
+                answer: 2,
+                explanation: "声门下腔黏膜下组织由于极其疏松，发炎或过敏时极易像长痘痘一样严重水肿，向内堵死原本就狭窄的声门下气道。"
+            },
+            {
+                q: "12. 人的纵隔主要用来分隔和包容很多重要的脏器，如心脏。它主要位于什么结构之间？",
+                options: ["两肺之间，两侧有纵隔胸膜包绕", "肋骨与背脊之间", "颈部和胸部交汇处", "横膈膜和腹膜之间"],
+                answer: 0,
+                explanation: "纵隔不是一个“隔膜”，而是一个区域，是指两侧纵隔胸膜之间的所有器官、结构的统称，包括心、大血管和气管等。"
+            },
+            {
+                q: "13. 老年人反复肺部感染（肺炎）且往往非常顽固不好治，主要因为气管内部的什么“清道夫”结构功能显著衰退？",
+                options: ["气管软骨环松脱", "负责清扫黏液和病菌向外排的“气管纤毛（纤毛上皮）”运动无力", "肺门部位的血管干瘪", "左右主支气管位置变化"],
+                answer: 1,
+                explanation: "气管内壁密布着扫帚般的纤毛丛，老人的纤毛不但数量锐减，清扫异物及痰液的速度也变得极慢，加之呼吸肌咳嗽无力，痰咳不出，导致反复感染。"
+            },
+            {
+                q: "14. 关于给严重呼吸困难但神志还清醒的老人（比如严重哮喘、严重老慢支）照护摆放体位，以下哪个是最致命的错误？",
+                options: ["抬高床头采取半坐卧位", "协助老人平躺并在背部垫个大软床垫", "鼓励其身体前倾手扶床桌支撑", "让其安静的半靠坐休息"],
+                answer: 1,
+                explanation: "严重呼吸困难时绝对不能平躺！平躺时，腹腔脏器会向上严重压迫本已功能退化的“横膈膜”（膈肌），导致吸气更困难并引发窒息感。"
+            },
+            {
+                q: "15. 老年人因为骨骼肌退化变硬以及重力压迫，导致了上呼吸道中的哪个部位很容易发出粗重且影响睡眠质量甚至引发缺氧的“警报颤音”？",
+                options: ["鼻翼的拍打", "松弛阻塞的软腭和咽喉部（打鼾/睡眠呼吸暂停）", "主支气管的分叉处", "气管软骨处发出的杂音"],
+                answer: 1,
+                explanation: "老年人的舌头根部和软腭肌肉极度松垮无力，仰卧睡觉时受重力坠落而遮住气道，气体只能在狭窄缝隙急速通行产生呼噜声（打鼾），引发睡眠缺氧甚至猝死。"
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const quizContainer = document.getElementById('quiz-container');
+        const scoreDisplay = document.getElementById('score-display');
+
+        quizData.forEach((item, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'quiz-question border border-gray-100 rounded-2xl p-5 bg-white mb-4 shadow-sm relative overflow-hidden';
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `<button class="quiz-option w-full text-left p-3 mt-2 rounded-xl border-2 border-gray-100 text-sm font-medium hover:border-gray-200 hover:bg-sky-50 bg-white" 
+                                onclick="handleAnswer(${index}, ${optIndex}, this)">
+                                <span class="inline-block w-6 text-gray-400">${String.fromCharCode(65 + optIndex)}.</span> ${opt}</button>`;
+            });
+
+            qDiv.innerHTML = `
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#0EA5E9] to-sky-200 opacity-60"></div>
+                <h3 class="font-bold text-gray-800 text-base leading-snug pl-2">${item.q}</h3>
+                <div class="mt-4 pl-2" id="options-${index}">
+                    ${optionsHtml}
+                </div>
+                <div class="explanation hidden mt-4 ml-2 p-4 bg-[#F0F9FF] text-gray-700 text-sm rounded-xl border border-sky-200" id="exp-${index}">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-sky-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div><span class="font-bold text-sky-700 block mb-1">医学急救解析</span>${item.explanation}</div>
+                    </div>
+                </div>
+            `;
+            quizContainer.appendChild(qDiv);
+        });
+
+        function handleAnswer(qIndex, selectedOptIndex, btnEl) {
+            if (answeredQuestions.has(qIndex)) return; 
+            answeredQuestions.add(qIndex);
+
+            const isCorrect = selectedOptIndex === quizData[qIndex].answer;
+            const optionsContainer = document.getElementById(`options-${qIndex}`);
+            const buttons = optionsContainer.querySelectorAll('.quiz-option');
+
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === quizData[qIndex].answer) {
+                    btn.classList.add('correct');
+                    btn.classList.remove('border-gray-100');
+                } else if (idx === selectedOptIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                    btn.classList.remove('border-gray-100');
+                }
+                btn.classList.remove('hover:bg-sky-50', 'hover:border-gray-200');
+            });
+
+            if (isCorrect) score++;
+            scoreDisplay.innerHTML = `${score}<span class="text-sm text-gray-400 font-normal">/15</span>`;
+
+            const expDiv = document.getElementById(`exp-${qIndex}`);
+            expDiv.classList.remove('hidden');
+            expDiv.classList.add('animate-[fadeInTab_0.4s_ease-out]');
+        }
+    </script>
+</body>
+</html>
