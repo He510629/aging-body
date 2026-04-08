@@ -314,21 +314,56 @@
                      <span class="text-[10px] text-red-700 font-bold opacity-50">右肾区</span>
                 </div>
 
-                <!-- Valid Patting Zones (Lower -> Upper moving inwards towards spine) -->
-                <!-- Left Lung Lower Outer (Target 1) -->
-                <div class="absolute bottom-24 left-4 w-12 h-12 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-1" onclick="hitTarget(1)">
+                
+                <!-- Valid Patting Zones (12 Sequence) -->
+
+                <div class="absolute bottom-20 left-3 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-1" onclick="hitTarget(1)" style="display:none;">
                     <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
-                    <span class="text-xs font-bold text-emerald-700">1</span>
+                    <span class="text-[10px] font-bold text-emerald-700">1</span>
                 </div>
-                <!-- Left Lung Lower Inner (Target 2) -->
-                <div class="absolute bottom-[110px] left-16 w-12 h-12 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center w-opacity-0 group" id="target-2" onclick="hitTarget(2)" style="display:none;">
+                <div class="absolute bottom-32 left-3 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-2" onclick="hitTarget(2)" style="display:none;">
                     <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
-                    <span class="text-xs font-bold text-emerald-700">2</span>
+                    <span class="text-[10px] font-bold text-emerald-700">2</span>
                 </div>
-                <!-- Left Lung Mid Outer (Target 3) -->
-                <div class="absolute bottom-[160px] left-6 w-12 h-12 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-3" onclick="hitTarget(3)" style="display:none;">
+                <div class="absolute bottom-44 left-3 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-3" onclick="hitTarget(3)" style="display:none;">
                     <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
-                    <span class="text-xs font-bold text-emerald-700">3</span>
+                    <span class="text-[10px] font-bold text-emerald-700">3</span>
+                </div>
+                <div class="absolute bottom-20 left-16 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-4" onclick="hitTarget(4)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">4</span>
+                </div>
+                <div class="absolute bottom-32 left-16 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-5" onclick="hitTarget(5)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">5</span>
+                </div>
+                <div class="absolute bottom-44 left-16 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-6" onclick="hitTarget(6)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">6</span>
+                </div>
+                <div class="absolute bottom-20 right-3 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-7" onclick="hitTarget(7)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">7</span>
+                </div>
+                <div class="absolute bottom-32 right-3 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-8" onclick="hitTarget(8)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">8</span>
+                </div>
+                <div class="absolute bottom-44 right-3 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-9" onclick="hitTarget(9)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">9</span>
+                </div>
+                <div class="absolute bottom-20 right-16 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-10" onclick="hitTarget(10)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">10</span>
+                </div>
+                <div class="absolute bottom-32 right-16 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-11" onclick="hitTarget(11)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">11</span>
+                </div>
+                <div class="absolute bottom-44 right-16 w-10 h-10 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-12" onclick="hitTarget(12)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-[10px] font-bold text-emerald-700">12</span>
                 </div>
 
                 <!-- Status Overlay during game -->
@@ -509,7 +544,7 @@
         let currentTarget = 1;
         let gameActive = false;
         let gameStartTime = 0;
-        const totalTargets = 3;
+        const totalTargets = 12;
 
         // Danger zone clicking
         document.querySelectorAll('.danger-zone').forEach(zone => {
@@ -583,7 +618,7 @@
             const timeTaken = ((Date.now() - gameStartTime) / 1000).toFixed(1);
             let timeMsg = "";
             let timeColor = "";
-            if(timeTaken < 2.5) {
+            if(timeTaken < 6.0) {
                 timeMsg = `用时 ${timeTaken} 秒，频率优秀（等效120-180次/分）！`;
                 timeColor = "text-emerald-700";
             } else {
@@ -601,22 +636,23 @@
         }
 
         /* ======== Quiz System ======== */
+        
         const quizData = [
-            { q: "1. 呼吸系统主要分为呼吸道和肺。其中，临床上常说的“下呼吸道”起自哪个部位？", options: ["鼻", "咽", "喉", "气管"], answer: 3 },
-            { q: "2. 喉部软骨中有一个起着“活门保险闸”般重要作用的解剖结构，每次吞咽必须遮盖住气管，它是？", options: ["甲状软骨", "环状软骨", "会厌软骨", "杓状软骨"], answer: 2 },
-            { q: "3. 某天你发现长者自主进食时突发噎食，瞬间脸色发白、无法咳嗽、发不出声，第一步急救处理必须是？", options: ["猛烈拍打后背帮他咳嗽", "端水给他冲服下去", "判断他是完全气道阻塞，执行海姆立克法", "赶紧扶他平躺下摇晃他"], answer: 2 },
-            { q: "4. 若该长者的胸部X光显示“肺叶实变阴影”，最易掉入异物引发吸入性肺炎的部位是所在是？", options: ["左侧上叶", "右主支气管因为粗、短、陡直易掉入", "右肺紧贴心脏", "全胸膜腔"], answer: 1 },
-            { q: "5. 如果老人在吃汤圆时发生急性喉阻塞窒息且已昏迷，紧急医疗急救常常直接穿刺哪里建立临时通气道？", options: ["气管软骨间隙", "环甲正中韧带", "颈动脉", "舌下腺"], answer: 1 },
-            { q: "6. 在气管分叉处（平胸骨角部位），有一个半月状解剖标志，它是最敏感的引起咳嗽反射报警的部位：", options: ["环状软骨板", "喉室", "气管隆嵴", "声襞"], answer: 2 },
-            { q: "7. 左肺分为2叶，右肺独有（左肺没有）的是哪一叶？", options: ["上舌段", "中叶", "上叶", "下叶"], answer: 1 },
-            { q: "8. 关于对胸膜腔的解剖说法，哪一项是维持正常呼吸运作真正核心的动力特征？", options: ["里面装着充足的氧气", "是心脏所在的空腔", "是一个密闭腔隙，保持负压状态", "胸膜腔底部有大量的保温脂肪"], answer: 2 },
-            { q: "9. 老人长期卧床如果发生肺部感染积水，液量往往会自然沉积到胸膜腔内最低凹的位置，这个部位在解剖上叫：", options: ["胸膜顶", "肋膈隐窝", "纵隔前间隙", "肺根内"], answer: 1 },
-            { q: "10. 各种原因引发的喉头水肿时，哪个部位最容易肿胀勒死喉咙气道？", options: ["前庭襞", "喉室", "声门下腔极度疏松的黏膜下组织", "会厌上方区"], answer: 2 },
-            { q: "11. 纵隔包容了众多生命攸关的重要脏器（如心脏、大血管）。它被夹在以下哪个结构中间？", options: ["两侧纵隔胸膜之间", "肋骨与皮下组织层中间", "颈部和胸部骨骼之间", "横膈薄膜之间"], answer: 0 },
-            { q: "12. 为什么即便感冒，老年人的黏稠痰液也极难咳出并且容易引发肺炎转重症？最关键的原因退化在于：", options: ["气管内软骨完全骨化消失", "气管薄膜上层负责定向清扫异物的纤毛运动减弱", "肺门部位的支气管平滑肌萎缩扩张", "左主支气管位置因心脏萎缩而变形"], answer: 1 },
-            { q: "13. 面对一位存在重度心肺功能不全、严重呼吸困难的老年患者，以下哪种体位安置是致命危险的？", options: ["坐卧位", "必须协助其平躺，放松肌肉", "半卧且使用高枕", "鼓励身体前倾依靠在桌面上以使用辅助呼吸肌群辅助"], answer: 1 },
-            { q: "14. 长者随着年高老化产生的“老年性肺气肿”其解剖病理源头是因为？", options: ["胸腔负压突然全部消失", "肺泡弹性回缩力丧失减弱，致残气量严重增多", "支气管管腔被癌细胞侵占变窄", "双肺体积同时大幅缩小变薄"], answer: 1 },
-            { q: "15. 老年人为防止在喝水吃药时发生误吸危险，除了为水添加增稠凝固粉之外，最有利于保护解剖气道安全的最佳进食体位是？", options: ["仰头伸长脖子", "让身体尽量向左侧偏置", "躯干保持坐直，且下颌微收（低头含胸）", "上半身往后倾倒45度半躺喂食"], answer: 2 }
+            { q: "1. 呼吸系统主要分为呼吸道和肺。其中，临床上常说的“下呼吸道”起自哪个部位？", options: ["鼻", "咽", "喉", "气管"], answer: 3, explanation: "上呼吸道包括鼻、咽、喉；下呼吸道是从气管以及各级支气管开始的（也就是在锁骨以下的通道）。" },
+            { q: "2. 喉部软骨中有一个起着“活门保险闸”般重要作用的解剖结构，每次吞咽必须遮盖住气管，它是？", options: ["甲状软骨", "环状软骨", "会厌软骨", "杓状软骨"], answer: 2, explanation: "会厌软骨像一片树叶状的盖子，老年人吞咽功能减退后此“盖子”封锁不及时，成为引起误吸呛咳的最主要原因。" },
+            { q: "3. 某天你发现长者自主进食时突发噎食，瞬间脸色发白、无法咳嗽、发不出声，第一步急救处理必须是？", options: ["猛烈拍打后背帮他咳嗽", "端水给他冲服下去", "判断他是完全气道阻塞，执行海姆立克法", "赶紧扶他平躺下摇晃他"], answer: 2, explanation: "无法咳嗽和发声即属于“完全性阻塞”。切不可拍背（碎屑越拍越深），只能从后方采用海姆立克急救法（Heimlich）。" },
+            { q: "4. 若该长者的胸部X光显示“肺叶实变阴影”，最易掉入异物引发吸入性肺炎的部位是所在是？", options: ["左侧上叶", "右主支气管因为粗、短、陡直易掉入", "右肺紧贴心脏", "全胸膜腔"], answer: 1, explanation: "右主支气管因为非常粗短直，走向与气管中线夹角仅20～30度，导致食物碎渣极容易笔直掉落进右肺引起肺炎。" },
+            { q: "5. 如果老人在吃汤圆时发生急性喉阻塞窒息且已昏迷，紧急医疗急救常常直接穿刺哪里建立临时通气道？", options: ["气管软骨间隙", "环甲正中韧带", "颈动脉", "舌下腺"], answer: 1, explanation: "环甲正中韧带表浅且无大血管，是急诊中建立临时快速通气孔（环甲膜穿刺术）的救命通道。" },
+            { q: "6. 在气管分叉处（平胸骨角部位），有一个半月状解剖标志，它是最敏感的引起咳嗽反射报警的部位：", options: ["环状软骨板", "喉室", "气管隆嵴", "声襞"], answer: 2, explanation: "气管隆嵴（一旦异物落在上面会诱发极其严重的痉挛性强咳，是气道异物排出的最后警报）。" },
+            { q: "7. 左肺分为2叶，右肺独有（左肺没有）的是哪一叶？", options: ["上舌段", "中叶", "上叶", "下叶"], answer: 1, explanation: "右肺因为受肝脏向上的挤压并且本身较宽，由斜裂和水平裂划分成了明确的三个叶（上叶、中叶、下叶）。" },
+            { q: "8. 关于对胸膜腔的解剖说法，哪一项是维持正常呼吸运作真正核心的动力特征？", options: ["里面装着充足的氧气", "是心脏所在的空腔", "是一个密闭腔隙，保持负压状态", "胸膜腔底部有大量的保温脂肪"], answer: 2, explanation: "胸膜腔是个几乎没有空气的极度负压空腔，正因其负压效应，胸廓变大时才能像拉吸盘一样把肺球拉开完成吸气。" },
+            { q: "9. 老人长期卧床如果发生肺部感染积水，液量往往会自然沉积到胸膜腔内最低凹的位置，这个部位在解剖上叫：", options: ["胸膜顶", "肋膈隐窝", "纵隔前间隙", "肺根内"], answer: 1, explanation: "肋膈隐窝是肋胸膜与膈胸膜相交界的深沟，是最底层盲区，即使在深吸气时肺下缘也无法填满，是积液最先且最多积留的地方。" },
+            { q: "10. 各种原因引发的喉头水肿时，哪个部位最容易肿胀勒死喉咙气道？", options: ["前庭襞", "喉室", "声门下腔极度疏松的黏膜下组织", "会厌上方区"], answer: 2, explanation: "声门下腔的黏膜下组织极其疏松，发炎或过敏时极易像发面一样严重水肿，向内堵死原本就狭窄的声门下气道导致窒息。" },
+            { q: "11. 纵隔包容了众多生命攸关的重要脏器（如心脏、大血管）。它被夹在以下哪个结构中间？", options: ["两侧纵隔胸膜之间", "肋骨与皮下组织层中间", "颈部和胸部骨骼之间", "横膈薄膜之间"], answer: 0, explanation: "纵隔不是一层“隔膜”，而是一个区域，指两侧纵隔胸膜之间的所有器官容器系统。" },
+            { q: "12. 为什么即便感冒，老年人的黏稠痰液也极难咳出并且容易引发肺炎转重症？最关键的原因退化在于：", options: ["气管内软骨完全骨化消失", "气管薄膜上层负责定向清扫异物的纤毛运动减弱", "肺门部位的支气管平滑肌萎缩扩张", "左主支气管位置因心脏萎缩而变形"], answer: 1, explanation: "气管内壁密布着扫帚般的纤毛丛，老人的纤毛不但数量锐减，向上扫动排异物及痰液的速度也变得极慢，加之呼吸肌无力，痰便极难咳出。" },
+            { q: "13. 面对一位存在重度心肺功能不全、严重呼吸困难的老年患者，以下哪种体位安置是致命危险的？", options: ["坐卧位", "必须协助其平躺，放松肌肉", "半卧且使用高枕", "鼓励身体前倾依靠在桌面上以使用辅助呼吸肌群辅助"], answer: 1, explanation: "严重呼吸困难时绝对不能平躺！平躺时，腹腔脏器会向上严重压迫本已功能退化的膈肌，空间受限导致吸气更困难并引发窒息感。" },
+            { q: "14. 长者随着年高老化产生的“老年性肺气肿”其解剖病理源头是因为？", options: ["胸腔负压突然全部消失", "肺泡弹性回缩力丧失减弱，致残气量严重增多", "支气管管腔被癌细胞侵占变窄", "双肺体积同时大幅缩小变薄"], answer: 1, explanation: "如同失去弹性的旧气球，吸气虽然能进空气，但呼气时无法自动回缩把二氧化碳废气挤出去，导致大量残存废气滞留肺内。" },
+            { q: "15. 老年人为防止在喝水吃药时发生误吸危险，除了为水添加增稠凝固粉之外，最有利于保护解剖气道安全的最佳进食体位是？", options: ["仰头伸长脖子", "让身体尽量向左侧偏置", "躯干保持坐直，且下颌微收（低头含胸）", "上半身往后倾倒45度半躺喂食"], answer: 2, explanation: "微低头含胸的姿势能让气管开口在解剖力学上变窄，食道变宽，有效利用重力让食团只滑向食管，大大减少食物误入气管的可能。" }
         ];
 
         let score = 0;
@@ -633,11 +669,14 @@
 
             const qDiv = document.createElement('div');
             qDiv.className = 'glass-panel p-5 relative overflow-hidden';
-            qDiv.innerHTML = `
+                        qDiv.innerHTML = `
                 <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-purple-400 to-indigo-400"></div>
                 <h3 class="font-black text-slate-800 text-[15px] leading-relaxed pl-2 mb-3">${item.q}</h3>
                 <div id="options-${index}">
                     ${optionsHtml}
+                </div>
+                <div id="exp-${index}" class="hidden mt-4 bg-purple-50 border border-purple-200 text-purple-800 p-3 rounded-xl text-xs font-bold leading-relaxed text-justify animate-[fadeIn_0.3s_ease]">
+                    <span class="text-purple-600">💡 解析：</span>${item.explanation}
                 </div>
             `;
             quizContainer.appendChild(qDiv);
@@ -665,6 +704,7 @@
 
             if (isCorrect) score++;
             document.getElementById('score-display').innerText = score;
+            document.getElementById(`exp-${qIndex}`).classList.remove('hidden');
         }
 
     </script>
