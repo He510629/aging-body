@@ -268,28 +268,77 @@
 
         <!-- Interactive Scenario B -->
         <div class="glass-panel p-5 mb-6">
-            <h3 class="font-black text-sky-600 text-lg mb-1">🌬️ 排痰大作战：背部叩击</h3>
-            <p class="text-xs text-slate-500 font-medium mb-4">老年人呼吸肌无力且气管纤毛清除功能减退，浓痰堵在肺部极易引发感染。你需要协助排痰！</p>
+            <h3 class="font-black text-sky-600 text-lg mb-1">🌬️ 排痰大作战：精准叩背</h3>
+            <p class="text-xs text-slate-500 font-medium mb-3">
+                正确手法：空心掌，<span class="font-bold text-sky-600">由外向内，由下向上</span>（利用辅助重力将痰液往气管总干推）。<br>
+                <span class="text-red-500 font-bold">禁忌区</span>：必须避开脊柱、肩胛骨、肾区（后腰下方）！要求频率120~180次/分。
+            </p>
             
-            <!-- Game Canvas -->
-            <div class="sputum-game-area rounded-2xl h-48 relative overflow-hidden mb-4 flex flex-col justify-end items-center pb-2">
-                <!-- Lung graphics -->
-                <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTIwIDAgdjQwIE0wIDIwaDQwIiBzdHJva2U9IiMzQjgyRjYiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==')]"></div>
+            <!-- Game Canvas: Back Anatomy Simulation -->
+            <div class="relative w-full h-[280px] bg-slate-100 rounded-3xl overflow-hidden border border-slate-200 mb-4 shadow-inner" id="patting-game-board">
+                <!-- Instruction Overlay -->
+                <div id="game-intro-overlay" class="absolute inset-0 bg-sky-900/80 z-50 flex flex-col items-center justify-center text-center p-4 backdrop-blur-sm transition-opacity duration-300">
+                    <span class="text-3xl mb-2">🤲</span>
+                    <h4 class="text-white font-black text-lg mb-2">叩击考核任务</h4>
+                    <p class="text-sky-100 text-xs leading-relaxed mb-4">请在下方人体背部模型上找出<span class="text-white font-bold">绿色正确区域</span>进行点击。<br>务必避开脊柱、骨骼和肾区！</p>
+                    <button onclick="startGame()" class="bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold py-2 px-6 rounded-full shadow-lg active:scale-95 transition">开始挑战</button>
+                </div>
+
+                <!-- Back Graphic Representation -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center opacity-30 pointer-events-none">
+                    <div class="w-16 h-8 bg-slate-400 rounded-t-full mb-1"></div> <!-- Neck -->
+                    <div class="w-48 h-56 bg-slate-400 rounded-[40px]"></div> <!-- Torso -->
+                </div>
+
+                <!-- Game Zones (Grid overlay) -->
+                <!-- Spine (Danger) -->
+                <div class="absolute top-8 bottom-8 left-1/2 -translate-x-1/2 w-8 bg-red-400/20 border border-red-400/50 flex items-center justify-center z-10 click-zone danger-zone rounded-lg" data-danger="脊柱区（易损伤脊髓神经）">
+                     <span class="text-[10px] text-red-700 font-bold rotate-90 whitespace-nowrap opacity-50">脊柱禁区</span>
+                </div>
                 
-                <!-- The Tube -->
-                <div class="w-16 h-40 bg-white/50 border-x-4 border-white rounded-t-full relative flex justify-center">
-                    <!-- The Sputum Blob -->
-                    <div id="sputum-blob" class="w-10 h-10 bg-yellow-400 rounded-full shadow-[inset_0_-5px_10px_rgba(0,0,0,0.2)] absolute bottom-4 animate-[pulse_2s_infinite]"></div>
+                <!-- Scapula Left (Danger) -->
+                <div class="absolute top-6 left-6 w-16 h-20 bg-red-400/20 border border-red-400/50 rounded-tl-[30px] rounded-br-[20px] z-10 click-zone danger-zone flex items-center justify-center" data-danger="肩胛骨（极易引发骨折与剧痛）">
+                     <span class="text-[10px] text-red-700 font-bold opacity-50 text-center">左肩胛</span>
+                </div>
+                <!-- Scapula Right (Danger) -->
+                <div class="absolute top-6 right-6 w-16 h-20 bg-red-400/20 border border-red-400/50 rounded-tr-[30px] rounded-bl-[20px] z-10 click-zone danger-zone flex items-center justify-center" data-danger="肩胛骨（极易引发骨折与剧痛）">
+                     <span class="text-[10px] text-red-700 font-bold opacity-50 text-center">右肩胛</span>
+                </div>
+
+                <!-- Kidney Left (Danger) -->
+                <div class="absolute bottom-4 left-8 w-16 h-16 bg-red-400/20 border border-red-400/50 rounded-full z-10 click-zone danger-zone flex items-center justify-center" data-danger="肾区（击打会引发内脏肾脏损伤大出血）">
+                     <span class="text-[10px] text-red-700 font-bold opacity-50">左肾区</span>
+                </div>
+                <!-- Kidney Right (Danger) -->
+                <div class="absolute bottom-4 right-8 w-16 h-16 bg-red-400/20 border border-red-400/50 rounded-full z-10 click-zone danger-zone flex items-center justify-center" data-danger="肾区（击打会引发内脏肾脏损伤大出血）">
+                     <span class="text-[10px] text-red-700 font-bold opacity-50">右肾区</span>
+                </div>
+
+                <!-- Valid Patting Zones (Lower -> Upper moving inwards towards spine) -->
+                <!-- Left Lung Lower Outer (Target 1) -->
+                <div class="absolute bottom-24 left-4 w-12 h-12 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-1" onclick="hitTarget(1)">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-xs font-bold text-emerald-700">1</span>
+                </div>
+                <!-- Left Lung Lower Inner (Target 2) -->
+                <div class="absolute bottom-[110px] left-16 w-12 h-12 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center w-opacity-0 group" id="target-2" onclick="hitTarget(2)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-xs font-bold text-emerald-700">2</span>
+                </div>
+                <!-- Left Lung Mid Outer (Target 3) -->
+                <div class="absolute bottom-[160px] left-6 w-12 h-12 bg-emerald-400/20 border border-emerald-400/50 rounded-lg z-20 click-zone valid-zone flex items-center justify-center opacity-0 group" id="target-3" onclick="hitTarget(3)" style="display:none;">
+                    <div class="w-full h-full bg-emerald-400 rounded-lg animate-ping absolute opacity-30 hidden indicator"></div>
+                    <span class="text-xs font-bold text-emerald-700">3</span>
+                </div>
+
+                <!-- Status Overlay during game -->
+                <div id="game-status-text" class="absolute top-2 left-0 right-0 text-center font-bold text-slate-400 text-sm pointer-events-none transition-colors">
+                    准备中...
                 </div>
             </div>
 
-            <button id="pat-btn" onclick="patBack()" class="w-full py-4 bg-gradient-to-r from-sky-400 to-sky-600 text-white rounded-xl font-black text-lg shadow-lg active:scale-95 transition">
-                💥 持续点击：进行叩背排痰
-            </button>
-
             <!-- Feedback Area -->
             <div id="pat-feedback" class="hidden mt-4 bg-sky-50 border border-sky-200 text-sky-800 p-3 rounded-lg text-xs font-bold leading-relaxed text-justify">
-                成功排出！由于老年气管平滑肌萎缩、纤毛摆动无力，靠人工叩击背部产生的震动，可以将附着在气管壁深处的黏稠分泌物震松，再利于咳出。这在老年防感染护理中极其关键。
             </div>
         </div>
     </main>
@@ -456,30 +505,99 @@
             }
         }
 
-        // Scenario B: Sputum Patting
-        let patCount = 0;
-        function patBack() {
-            if (patCount >= 5) return;
-            patCount++;
-            
-            const blob = document.getElementById('sputum-blob');
-            const btn = document.getElementById('pat-btn');
-            
-            // Move the blob up by subtracting bottom value
-            let currentBottom = parseInt(getComputedStyle(blob).bottom);
-            blob.style.bottom = (currentBottom + 25) + 'px';
-            
-            // Visual feedback on button
-            btn.classList.add('scale-95', 'bg-sky-700');
-            setTimeout(() => btn.classList.remove('scale-95', 'bg-sky-700'), 150);
+        // Scenario B: Patting Sequence Game
+        let currentTarget = 1;
+        let gameActive = false;
+        let gameStartTime = 0;
+        const totalTargets = 3;
 
-            if(patCount >= 5) {
-                blob.style.opacity = 0;
-                btn.innerHTML = "✨ 排痰完成！气道通畅";
-                btn.classList.remove('bg-gradient-to-r', 'from-sky-400', 'to-sky-600');
-                btn.classList.add('bg-emerald-500');
-                document.getElementById('pat-feedback').classList.remove('hidden');
+        // Danger zone clicking
+        document.querySelectorAll('.danger-zone').forEach(zone => {
+            zone.addEventListener('click', function() {
+                if(!gameActive) return;
+                const reason = this.getAttribute('data-danger');
+                failGame(`❌ 极其危险！你击中了${reason}。这违背了安全叩击原则。`);
+            });
+        });
+
+        function startGame() {
+            document.getElementById('game-intro-overlay').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('game-status-text').innerText = "考核中：请由外向内，由下向上点击正确区域！";
+            document.getElementById('game-status-text').classList.replace('text-slate-400', 'text-sky-600');
+            document.getElementById('pat-feedback').classList.add('hidden');
+            
+            // Reset state
+            currentTarget = 1;
+            gameActive = true;
+            gameStartTime = Date.now();
+            
+            // Hide all targets, show target 1
+            for(let i=1; i<=totalTargets; i++) {
+                document.getElementById('target-'+i).style.display = 'none';
+                document.getElementById('target-'+i).classList.add('opacity-0');
+                document.getElementById('target-'+i).classList.replace('bg-emerald-500/80', 'bg-emerald-400/20');
             }
+            document.getElementById('target-1').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('target-1').classList.remove('opacity-0');
+                document.getElementById('target-1').querySelector('.indicator').classList.remove('hidden');
+            }, 50);
+        }
+
+        function hitTarget(id) {
+            if(!gameActive) return;
+            if(id !== currentTarget) return;
+
+            // Visual hit feedback
+            const t = document.getElementById('target-'+id);
+            t.classList.replace('bg-emerald-400/20', 'bg-emerald-500/80');
+            t.querySelector('.indicator').classList.add('hidden');
+            
+            // Show next
+            currentTarget++;
+            if(currentTarget > totalTargets) {
+                setTimeout(() => winGame(), 200);
+            } else {
+                const next = document.getElementById('target-'+currentTarget);
+                next.style.display = 'flex';
+                setTimeout(() => {
+                    next.classList.remove('opacity-0');
+                    next.querySelector('.indicator').classList.remove('hidden');
+                }, 50);
+            }
+        }
+
+        function failGame(msg) {
+            gameActive = false;
+            document.getElementById('game-status-text').innerText = "考核失败 - 击中禁忌区";
+            document.getElementById('game-status-text').classList.replace('text-sky-600', 'text-red-600');
+            
+            const fb = document.getElementById('pat-feedback');
+            fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800', 'border-emerald-200');
+            fb.classList.add('bg-red-50', 'text-red-800', 'border-red-200');
+            fb.innerHTML = msg + ' <button onclick="startGame()" class="underline font-bold mt-2 block text-red-900">重新挑战</button>';
+        }
+
+        function winGame() {
+            gameActive = false;
+            const timeTaken = ((Date.now() - gameStartTime) / 1000).toFixed(1);
+            let timeMsg = "";
+            let timeColor = "";
+            if(timeTaken < 2.5) {
+                timeMsg = `用时 ${timeTaken} 秒，频率优秀（等效120-180次/分）！`;
+                timeColor = "text-emerald-700";
+            } else {
+                timeMsg = `用时 ${timeTaken} 秒，频率略慢，临床叩击需更加快速。`;
+                timeColor = "text-amber-600";
+            }
+
+            document.getElementById('game-status-text').innerText = "✅ 考核通过";
+            document.getElementById('game-status-text').classList.replace('text-sky-600', 'text-emerald-600');
+            
+            const fb = document.getElementById('pat-feedback');
+            fb.classList.remove('hidden', 'bg-red-50', 'text-red-800', 'border-red-200');
+            fb.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-200');
+            fb.innerHTML = `🌟 **完美避开所有禁忌区！**<br><span class="font-bold ${timeColor}">${timeMsg}</span><br>您目前“由外侧→内侧、下→上”的叩击顺序符合规范，这样利用重力将肺基底部黏稠痰液松动并推向主支气管。 <button onclick="startGame()" class="underline font-bold mt-2 block text-emerald-900">再练习一次</button>`;
         }
 
         /* ======== Quiz System ======== */
