@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>人体随龄老化护理教学门户</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F8FAFC;
+        }
+        .portal-bg {
+            background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:active {
+            transform: scale(0.96);
+        }
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body class="portal-bg pb-12">
+
+    <!-- Header -->
+    <header class="pt-16 pb-12 px-6 bg-gradient-to-b from-blue-600 to-indigo-700 rounded-b-[40px] shadow-xl relative overflow-hidden">
+        <div class="relative z-10 text-center">
+            <span class="bg-white/20 text-blue-50 px-3 py-1 rounded-full text-xs font-bold tracking-widest backdrop-blur-sm border border-white/20">课堂专属终端</span>
+            <h1 class="text-[28px] leading-tight font-black text-white mt-4 tracking-tight">老年人生理特点<br><span class="text-blue-200 text-2xl">& 护理实操系统</span></h1>
+            <p class="text-blue-100 mt-4 text-sm font-medium w-[85%] mx-auto">整合人体各大系统的解剖学重难点与临床养老照护情境</p>
+        </div>
+        
+        <!-- Abstract Decorations -->
+        <div class="absolute w-40 h-40 border-[20px] border-white/10 rounded-full -top-10 -right-10 pointer-events-none"></div>
+        <div class="absolute w-24 h-24 bg-white/10 rounded-full blur-2xl top-10 left-0 pointer-events-none"></div>
+    </header>
+
+    <main class="px-5 -mt-6 relative z-20">
+        
+        <!-- Module 1: Bones (Original Index) -->
+        <a href="index.html" class="block mb-5">
+            <div class="glass-card rounded-3xl p-5 relative overflow-hidden flex items-center">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-600 shadow-lg flex items-center justify-center text-3xl shrink-0">
+                    🦴
+                </div>
+                <div class="ml-4">
+                    <span class="text-[10px] font-black text-indigo-600 tracking-wider uppercase mb-1 block">模块一 · 第一章</span>
+                    <h2 class="text-lg font-black text-slate-800">骨骼身体建筑师</h2>
+                    <p class="text-[13px] text-slate-500 font-medium leading-relaxed mt-1">骨折脱位分析、骨质疏松演变</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Module 2: Muscles -->
+        <a href="muscle_activity_app.html" class="block mb-5">
+            <div class="glass-card rounded-3xl p-5 relative overflow-hidden flex items-center">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg flex items-center justify-center text-3xl shrink-0">
+                    💪
+                </div>
+                <div class="ml-4">
+                    <span class="text-[10px] font-black text-orange-600 tracking-wider uppercase mb-1 block">模块二 · 第二章</span>
+                    <h2 class="text-lg font-black text-slate-800">肌肉组织与活动</h2>
+                    <p class="text-[13px] text-slate-500 font-medium leading-relaxed mt-1">肌少症、跌倒评估、卧床康复锻炼</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Module 3: Digestive -->
+        <a href="digestive_system_app.html" class="block mb-5">
+            <div class="glass-card rounded-3xl p-5 relative overflow-hidden flex items-center">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg flex items-center justify-center text-3xl shrink-0">
+                    🍱
+                </div>
+                <div class="ml-4">
+                    <span class="text-[10px] font-black text-teal-600 tracking-wider uppercase mb-1 block">模块三 · 第四章</span>
+                    <h2 class="text-lg font-black text-slate-800">消化系统探查研究</h2>
+                    <p class="text-[13px] text-slate-500 font-medium leading-relaxed mt-1">吞咽困难、便秘处理、首过效应衰退</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Module 4: Respiratory -->
+        <a href="respiratory_system_app.html" class="block mb-5">
+            <div class="glass-card rounded-3xl p-5 relative overflow-hidden flex items-center border-[3px] border-sky-400/50 shadow-[0_10px_30px_rgba(56,189,248,0.2)]">
+                <!-- Highlight new badge -->
+                <div class="absolute top-0 right-0 bg-sky-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-md">最新章节</div>
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 shadow-lg flex items-center justify-center text-3xl shrink-0">
+                    🫁
+                </div>
+                <div class="ml-4">
+                    <span class="text-[10px] font-black text-sky-600 tracking-wider uppercase mb-1 block">模块四 · 第五章</span>
+                    <h2 class="text-lg font-black text-slate-800">呼吸探测与急救局</h2>
+                    <p class="text-[13px] text-slate-500 font-medium leading-relaxed mt-1">误吸致命危机、海姆立克急救、叩背排痰</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Coming soon placeholder -->
+        <div class="glass-card rounded-3xl p-5 relative overflow-hidden flex items-center opacity-60 grayscale filter mt-8">
+            <div class="w-16 h-16 rounded-2xl border-4 border-dashed border-slate-300 flex items-center justify-center text-3xl shrink-0 text-slate-400">
+                🔒
+            </div>
+            <div class="ml-4">
+                <span class="text-[10px] font-black text-slate-400 tracking-wider uppercase mb-1 block">后续排期更新</span>
+                <h2 class="text-lg font-black text-slate-600">神经与循环系统...</h2>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-10 text-center text-slate-400 text-[10px] font-bold tracking-wider">
+        DESIGNED FOR MODERN MEDICAL EDU
+    </footer>
+</body>
+</html>
