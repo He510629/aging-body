@@ -720,15 +720,6 @@
             
             document.getElementById('score-display').innerText = score;
             expDiv.classList.remove('hidden');
-        } else if (idx === selectedOptIndex && !isCorrect) {
-                    btn.classList.add('incorrect');
-                    btn.classList.replace('text-slate-600', 'text-red-800');
-                }
-            });
-
-            if (isCorrect) score++;
-            document.getElementById('score-display').innerText = score;
-            document.getElementById(`exp-${qIndex}`).classList.remove('hidden');
         }
 
     </script>
