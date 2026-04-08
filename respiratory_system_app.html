@@ -682,7 +682,7 @@
             quizContainer.appendChild(qDiv);
         });
 
-        function handleContentAnswer(qIndex, selectedOptIndex, btnEl) {
+                function handleContentAnswer(qIndex, selectedOptIndex, btnEl) {
             if (answeredQuestions.has(qIndex)) return; 
             answeredQuestions.add(qIndex);
 
@@ -696,7 +696,31 @@
                     btn.classList.add('correct');
                     btn.classList.replace('text-slate-600', 'text-sky-800');
                     btn.classList.replace('border-slate-200', 'border-sky-500');
+                    btn.classList.add('bg-sky-50');
                 } else if (idx === selectedOptIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                    btn.classList.replace('text-slate-600', 'text-red-800');
+                    btn.classList.replace('border-slate-200', 'border-red-500');
+                    btn.classList.add('bg-red-50');
+                }
+            });
+
+            const expDiv = document.getElementById(`exp-${qIndex}`);
+            if (isCorrect) {
+                score++;
+                expDiv.innerHTML = `<span class="text-emerald-600 font-black text-[14px] mb-2 block tracking-wide">✅ 回答正确！</span>` + expDiv.innerHTML;
+            } else {
+                const correctLetter = String.fromCharCode(65 + quizData[qIndex].answer);
+                expDiv.innerHTML = `<span class="text-red-500 font-black text-[14px] mb-2 block tracking-wide">❌ 回答错误！正确答案是：${correctLetter}</span>` + expDiv.innerHTML;
+                
+                expDiv.classList.replace('bg-purple-50', 'bg-red-50');
+                expDiv.classList.replace('border-purple-200', 'border-red-200');
+                expDiv.classList.replace('text-purple-800', 'text-red-900');
+            }
+            
+            document.getElementById('score-display').innerText = score;
+            expDiv.classList.remove('hidden');
+        } else if (idx === selectedOptIndex && !isCorrect) {
                     btn.classList.add('incorrect');
                     btn.classList.replace('text-slate-600', 'text-red-800');
                 }
