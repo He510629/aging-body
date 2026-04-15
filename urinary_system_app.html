@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>泌尿探查局 | 老年生理与照护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #FDF8F0;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        .app-bg { background: linear-gradient(180deg, #FEF3C7 0%, #FDF8F0 100%); }
+        .glass-panel {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 8px 32px rgba(217,119,6,0.06);
+            border-radius: 24px;
+        }
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1);
+            z-index: 100; max-height: 85vh; overflow-y: auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.4); opacity:0; pointer-events:none;
+            transition: opacity 0.3s ease; z-index:99;
+        }
+        .overlay.active { opacity:1; pointer-events:auto; }
+        .timeline-line {
+            position: absolute; width: 4px;
+            background: linear-gradient(to bottom, #FCD34D, #D97706);
+            left: 38px; top: 20px; bottom: 20px; z-index: 0;
+        }
+        .anatomy-node {
+            position: relative; z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .anatomy-node:active { transform: scale(0.95); }
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            border-top: 1px solid #e5e7eb;
+            display: flex; justify-content: space-around;
+            padding: 10px 0; padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 90;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #9CA3AF; font-size: 11px; font-weight: 500;
+            transition: color 0.3s ease; cursor: pointer;
+        }
+        .nav-item.active { color: #D97706; }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1); }
+        .nav-item.active .nav-icon { transform: translateY(-4px) scale(1.1); }
+        .page-view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .page-view.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .click-target { cursor: pointer; transition: all 0.2s; }
+        .click-target:active { transform: scale(0.9); }
+        .detail-tab.active { background-color: #D97706; color: white; font-weight: bold; }
+        /* Stone game */
+        .ureter-tube { position: relative; width: 60px; margin: 0 auto; }
+        .narrow-zone { position: absolute; left: 50%; transform: translateX(-50%); width: 80px; height: 30px; border-radius: 50%; z-index: 20; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; }
+        .stone-obj { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #FCD34D, #92400E); box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: absolute; left: 50%; transform: translateX(-50%); transition: top 0.5s cubic-bezier(0.25,0.46,0.45,0.94); z-index: 30; }
+    </style>
+</head>
+<body class="app-bg">
+
+    <!-- Top Header -->
+    <header class="pt-12 pb-6 px-6 bg-gradient-to-br from-[#D97706] to-[#F59E0B] rounded-b-[40px] shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black text-white tracking-tight">泌尿系统解析</h1>
+            <p class="text-amber-100 mt-2 text-sm font-medium">结构·排泄·老化：从肾单位到排尿照护</p>
+        </div>
+        <div class="absolute right-[-20px] top-6 text-white/10 text-8xl font-black italic">KIDNEY</div>
+        <div class="absolute w-20 h-20 rounded-full bg-white/10 blur-xl top-0 left-10"></div>
+        <div class="absolute w-32 h-32 rounded-full bg-white/10 blur-2xl bottom-[-20px] right-[-20px]"></div>
+    </header>
+
+    <!-- ========== PAGE 1: Anatomy ========== -->
+    <main id="view-anatomy" class="page-view active px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-amber-500 rounded-full mr-2"></span>点击节点深度解析器官
+        </h2>
+        <div class="relative pl-2 pb-10">
+            <div class="timeline-line"></div>
+            <!-- Node 1: Kidney -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(0)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-amber-100 flex-shrink-0">🫘</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">核心工厂：肾脏</h3>
+                    <p class="text-xs text-amber-600 font-bold mt-1 bg-amber-100 inline-block px-2 py-0.5 rounded-full">位置·被膜·肾单位·老年萎缩</p>
+                </div>
+            </div>
+            <!-- Node 2: Ureter -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(1)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-amber-100 flex-shrink-0">🔻</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">输送管道：输尿管</h3>
+                    <p class="text-xs text-red-600 font-bold mt-1 bg-red-100 inline-block px-2 py-0.5 rounded-full">三处狭窄 = 结石卡点</p>
+                </div>
+            </div>
+            <!-- Node 3: Bladder -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(2)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-amber-100 flex-shrink-0">🎈</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">储液囊袋：膀胱</h3>
+                    <p class="text-xs text-amber-600 font-bold mt-1 bg-amber-100 inline-block px-2 py-0.5 rounded-full">膀胱三角·逼尿肌·尿潴留</p>
+                </div>
+            </div>
+            <!-- Node 4: Urethra + Function -->
+            <div class="anatomy-node flex items-center click-target" onclick="openNodeDetail(3)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-amber-100 flex-shrink-0">🚿</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">终末出口：尿道与排尿</h3>
+                    <p class="text-xs text-purple-600 font-bold mt-1 bg-purple-100 inline-block px-2 py-0.5 rounded-full">男女差异·尿失禁·尿路感染</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 2: Care Interactions ========== -->
+    <main id="view-care" class="page-view px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-red-500 rounded-full mr-2"></span>临床情境互动
+        </h2>
+
+        <!-- Game A: Stone Journey -->
+        <div class="glass-panel p-5 mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-amber-700 text-lg">💎 结石历险：输尿管三道关卡</h3>
+                <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-1 rounded font-bold">解剖模拟</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">输尿管有三处解剖狭窄，结石最容易卡在这些位置。请依次点击三处狭窄，帮助结石安全通过！</p>
+
+            <div class="bg-amber-50 rounded-2xl p-4 relative h-[300px] border border-amber-200 shadow-inner overflow-hidden">
+                <!-- Kidney top -->
+                <div class="absolute top-2 left-1/2 -translate-x-1/2 text-3xl">🫘</div>
+                <div class="text-[10px] text-amber-700 font-bold absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap">肾盂</div>
+
+                <!-- Ureter tube visual -->
+                <div class="absolute top-16 bottom-10 left-1/2 -translate-x-1/2 w-8 bg-amber-200/60 rounded-full border-x-2 border-amber-300"></div>
+
+                <!-- Three Narrow Points (clickable) -->
+                <div class="narrow-zone bg-red-200/80 border-2 border-red-400 top-[70px]" id="narrow-1" onclick="passNarrow(1)">
+                    <span class="text-red-700">上狭窄</span>
+                </div>
+                <div class="narrow-zone bg-red-200/80 border-2 border-red-400 top-[150px] opacity-40 pointer-events-none" id="narrow-2" onclick="passNarrow(2)">
+                    <span class="text-red-700">中狭窄</span>
+                </div>
+                <div class="narrow-zone bg-red-200/80 border-2 border-red-400 top-[230px] opacity-40 pointer-events-none" id="narrow-3" onclick="passNarrow(3)">
+                    <span class="text-red-700">下狭窄</span>
+                </div>
+
+                <!-- The Stone -->
+                <div class="stone-obj" id="the-stone" style="top: 45px;"></div>
+
+                <!-- Bladder bottom -->
+                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 text-2xl">🎈</div>
+            </div>
+
+            <div id="stone-info" class="mt-4 text-xs text-slate-600 font-bold text-center">
+                ⬆️ 点击红色的「上狭窄」让结石通过第一道关卡
+            </div>
+            <div id="stone-feedback" class="hidden mt-3 p-3 rounded-xl text-xs font-bold leading-relaxed"></div>
+        </div>
+
+        <!-- Game B: Elderly Urinary Assessment -->
+        <div class="glass-panel p-5 mb-6">
+            <h3 class="font-black text-amber-700 text-lg mb-1">🧓 老年排尿困扰速判</h3>
+            <p class="text-xs text-slate-500 font-medium mb-4">李爷爷（82岁）近日反复夜间起床排尿6-7次，每次只排出很少，还总觉得排不干净。请你判断最可能的主要原因：</p>
+            <div class="space-y-3">
+                <button onclick="handleUriChoice('wrong1',this)" class="w-full bg-white border-2 border-slate-200 rounded-xl p-3 text-left font-bold text-slate-600 hover:bg-slate-50 transition click-target">
+                    <span class="text-xl mr-2">💧</span> 喝水太多导致的正常生理现象
+                </button>
+                <button onclick="handleUriChoice('wrong2',this)" class="w-full bg-white border-2 border-slate-200 rounded-xl p-3 text-left font-bold text-slate-600 hover:bg-slate-50 transition click-target">
+                    <span class="text-xl mr-2">🫘</span> 肾小球滤过率升高，尿液产量增大
+                </button>
+                <button onclick="handleUriChoice('correct',this)" class="w-full bg-white border-2 border-slate-200 rounded-xl p-3 text-left font-bold text-slate-600 hover:bg-slate-50 transition click-target">
+                    <span class="text-xl mr-2">🔴</span> 前列腺增生压迫尿道 + 膀胱逼尿肌萎缩
+                </button>
+            </div>
+            <div id="uri-feedback" class="hidden mt-5 p-4 rounded-xl text-sm font-medium"></div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 3: Quiz ========== -->
+    <main id="view-quiz" class="page-view px-5 pt-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-black text-slate-800 flex items-center">
+                <span class="w-1.5 h-5 bg-purple-500 rounded-full mr-2"></span>知识图谱测评
+            </h2>
+            <div class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-black shadow-inner">
+                得分 <span id="score-display" class="text-lg">0</span>/15
+            </div>
+        </div>
+        <div id="quiz-container" class="space-y-6"></div>
+    </main>
+
+    <!-- ========== BOTTOM SHEET (Node Detail) ========== -->
+    <div class="overlay" id="overlay" onclick="closeNodeDetail()"></div>
+    <div class="bottom-sheet" id="detail-sheet">
+        <div class="p-6">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div class="flex items-center mb-6">
+                <div id="modal-icon" class="text-4xl mr-4 bg-amber-50 w-16 h-16 flex items-center justify-center rounded-2xl"></div>
+                <div><h2 id="modal-title" class="text-2xl font-black text-slate-800"></h2></div>
+            </div>
+            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                <button onclick="switchModalTab('normal')" id="mtab-normal" class="detail-tab active flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">✅ 正常结构</button>
+                <button onclick="switchModalTab('aging')" id="mtab-aging" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">⚠️ 老年退化</button>
+                <button onclick="switchModalTab('care')" id="mtab-care" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">🛡️ 照护要点</button>
+            </div>
+            <div id="md-normal" class="modal-content-section"></div>
+            <div id="md-aging" class="modal-content-section hidden"></div>
+            <div id="md-care" class="modal-content-section hidden"></div>
+            <button onclick="closeNodeDetail()" class="mt-8 w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200 transition click-target">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <nav class="bottom-nav">
+        <div class="nav-item active click-target" onclick="switchNav('anatomy',this)"><span class="nav-icon mb-1">🩻</span><span>探索结构</span></div>
+        <div class="nav-item click-target" onclick="switchNav('care',this)"><span class="nav-icon mb-1">🎮</span><span>照护实操</span></div>
+        <div class="nav-item click-target" onclick="switchNav('quiz',this)"><span class="nav-icon mb-1">📝</span><span>答题测评</span></div>
+    </nav>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        /* === Navigation === */
+        function switchNav(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        /* === Anatomy Data === */
+        const anatomyData = [
+            {
+                icon: "🫘", title: "核心工厂：肾脏",
+                normal: "肾脏呈蚕豆形，位于<span class='text-amber-600 font-bold'>脊柱两侧、腹膜外位</span>。左肾高于右肾（因右侧有肝脏挤压）。<br><br>肾被三层被膜保护：最内层<span class='text-amber-600 font-bold'>纤维囊</span>紧贴肾实质；中层<span class='text-amber-600 font-bold'>脂肪囊</span>起固定缓冲作用；最外层<span class='text-amber-600 font-bold'>肾筋膜</span>将肾包裹悬吊。<br><br>肾蒂结构排列记忆口诀：<br>• 从前向后：<b>静脉→动脉→肾盂</b><br>• 从上向下：<b>动脉→静脉→肾盂</b>",
+                aging: "老年人肾脏明显<span class='text-red-500 font-bold'>萎缩变小</span>，至80～90岁重量减少20%～30%。<br><br>微观层面：<span class='text-red-500 font-bold'>肾小球数量减少、硬化增多</span>，肾小管萎缩并发生退行性改变甚至形成囊肿。<br><br>肾动脉明显硬化，血管内膜增厚、玻璃样变，导致<span class='text-red-500 font-bold'>肾血流量锐减</span>。",
+                care: "老年人由于肾萎缩，<span class='text-emerald-600 font-bold'>肾小球滤过率（GFR）和肾小管重吸收能力均严重下降</span>，排泄代谢废物的能力大大减弱。<br><br>因此需高度警惕<span class='text-red-500 font-bold'>药物蓄积中毒</span>——很多药物（如抗生素、止痛药）主要经肾排泄，老人必须减量使用。<br><br>叩击腰背时需注意避开<span class='text-amber-600 font-bold'>肾区</span>（竖脊肌外缘与第12肋夹角处），防止肾损伤。"
+            },
+            {
+                icon: "🔻", title: "输送管道：输尿管",
+                normal: "输尿管长约<span class='text-amber-600 font-bold'>25～30cm</span>，管径约0.5～1cm，分为腹部、盆部和壁内部三段。<br><br>最核心的考点：输尿管有<span class='text-red-500 font-bold'>三处生理性狭窄</span>！<br>① <b>上狭窄</b>：肾盂输尿管移行处<br>② <b>中狭窄</b>：越过骨盆上口与髂血管交叉处<br>③ <b>下狭窄</b>：输尿管穿入膀胱壁内部",
+                aging: "老年人输尿管平滑肌萎缩，蠕动力减弱，尿液排送效率降低。<br><br>加之老年人饮水减少、尿液浓缩，<span class='text-red-500 font-bold'>结石风险显著增高</span>，一旦形成结石极容易卡在上述三处狭窄处，引发剧烈肾绞痛、血尿甚至无尿。",
+                care: "结石堵塞的典型症状是<span class='text-amber-600 font-bold'>突发剧烈腰腹阵发性绞痛</span>，并可向大腿内侧放射，兼有镜下血尿。护理中发现老人有此状况应立即送医。<br><br>平时应鼓励长者<span class='text-emerald-600 font-bold'>适量多饮水</span>（每日至少1500ml），以稀释尿液、冲刷管道来预防结石。"
+            },
+            {
+                icon: "🎈", title: "储液囊袋：膀胱",
+                normal: "膀胱分为尖、底、体、颈四部分。空虚时全部位于盆腔内；充盈时膀胱尖可超过耻骨联合上缘。<br><br>内面最重要的标志是<span class='text-amber-600 font-bold'>膀胱三角</span>——由两个输尿管口和一个尿道内口围成的三角区。此处<span class='text-red-500 font-bold'>黏膜光滑无襞</span>，不随膀胱充盈而变化，是肿瘤和感染的好发部位。<br><br>排尿反射：膀胱内尿量达400～500ml时，牵张感受器兴奋→盆神经传入骶髓→大脑皮层产生尿意。",
+                aging: "老年人膀胱<span class='text-red-500 font-bold'>逼尿肌萎缩</span>导致收缩无力排不干净尿，残余尿增多。<br><br>括约肌松弛导致<span class='text-red-500 font-bold'>尿失禁</span>或压力性漏尿（打喷嚏、咳嗽时漏尿）。<br><br>同时膀胱容量减小，产生尿意的阈值降低，表现为<span class='text-red-500 font-bold'>尿频</span>。",
+                care: "残余尿增多极易滋生细菌，引发<span class='text-red-500 font-bold'>反复泌尿系统感染</span>。护理中应关注老人排尿次数、量和颜色。<br><br>对尿失禁老人，应进行<span class='text-emerald-600 font-bold'>盆底肌训练（凯格尔运动）</span>和定时排尿训练。<br><br>留置导尿管的老人，须严格执行<span class='text-emerald-600 font-bold'>无菌操作</span>和定期更换，预防导管相关尿路感染。"
+            },
+            {
+                icon: "🚿", title: "终末出口：尿道与排尿",
+                normal: "女性尿道较<span class='text-amber-600 font-bold'>短而直</span>，仅3～5cm，开口于阴道前庭。男性尿道兼有排尿和排精功能，分前列腺部、膜部和海绵体部。<br><br>正常成人每日尿量约1000～2000ml，尿液呈淡黄色透明。",
+                aging: "老年男性最常见的是<span class='text-red-500 font-bold'>前列腺增生（BPH）</span>，增大的前列腺压迫尿道导致排尿困难、尿线变细、尿频尿急。严重时可完全梗阻导致尿潴留。<br><br>老年女性因子宫脱垂、盆底松弛等，极易导致<span class='text-red-500 font-bold'>尿路感染</span>，加之女性尿道本身短直，细菌更容易逆行入侵。",
+                care: "男性前列腺增生者，需关注排尿流畅度。发现无法自行排尿（尿潴留）时需紧急<span class='text-red-500 font-bold'>导尿</span>。<br><br>女性老人须保持<span class='text-emerald-600 font-bold'>会阴清洁</span>，擦拭方向必须从前向后（尿道口→肛门方向），反向操作极易将肠道菌群带入尿道引发感染。<br><br>发现老人<span class='text-amber-600 font-bold'>尿液浑浊、有异味或发热</span>时，应高度怀疑泌尿系统感染，及时送医。"
+            }
+        ];
+
+        /* === Modal Handling === */
+        function openNodeDetail(i) {
+            const d = anatomyData[i];
+            document.getElementById('modal-icon').innerText = d.icon;
+            document.getElementById('modal-title').innerText = d.title;
+            document.getElementById('md-normal').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.normal}</p>`;
+            document.getElementById('md-aging').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.aging}</p>`;
+            document.getElementById('md-care').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.care}</p>`;
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('detail-sheet').classList.add('open');
+            switchModalTab('normal');
+        }
+        function closeNodeDetail() {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('detail-sheet').classList.remove('open');
+        }
+        function switchModalTab(id) {
+            ['normal','aging','care'].forEach(t => {
+                document.getElementById('mtab-'+t).classList.remove('active');
+                document.getElementById('md-'+t).classList.add('hidden');
+            });
+            document.getElementById('mtab-'+id).classList.add('active');
+            document.getElementById('md-'+id).classList.remove('hidden');
+        }
+
+        /* === Game A: Stone Journey === */
+        let stoneStep = 0;
+        const stonePositions = [45, 90, 170, 250]; // px from top
+        const narrowLabels = [
+            "上狭窄（肾盂输尿管移行处）：结石最先在此被卡住，引发突发性肾区绞痛和镜下血尿。",
+            "中狭窄（骨盆上口与髂血管交叉处）：结石通过此处时疼痛向腹股沟和大腿内侧放射。",
+            "下狭窄（膀胱壁内段）：最窄的一处！结石卡在此处可引发排尿困难、尿频尿急甚至无尿。通过后进入膀胱，大部分可随尿液排出。"
+        ];
+        function passNarrow(n) {
+            if (n !== stoneStep + 1) return;
+            stoneStep = n;
+            const stone = document.getElementById('the-stone');
+            stone.style.top = stonePositions[n] + 'px';
+            
+            // Activate current narrow zone visually
+            const zone = document.getElementById('narrow-'+n);
+            zone.classList.replace('bg-red-200/80','bg-emerald-200/80');
+            zone.classList.replace('border-red-400','border-emerald-400');
+            zone.querySelector('span').classList.replace('text-red-700','text-emerald-700');
+            zone.querySelector('span').innerText = '✅ 已通过';
+
+            // Activate next
+            if (n < 3) {
+                const next = document.getElementById('narrow-'+(n+1));
+                next.classList.remove('opacity-40','pointer-events-none');
+            }
+
+            document.getElementById('stone-info').innerHTML = `<span class="text-amber-700">📍 第${n}处：</span>${narrowLabels[n-1]}`;
+
+            if (n === 3) {
+                const fb = document.getElementById('stone-feedback');
+                fb.classList.remove('hidden');
+                fb.classList.add('bg-emerald-50','text-emerald-800','border','border-emerald-200');
+                fb.innerHTML = "🎉 <b>结石全程通过！</b>临床上，直径<5mm的结石有较大概率自行排出，但>6mm则多需要体外碎石或手术。老年人肾功能本就减退，结石堵塞后果更为严重，平时应鼓励多饮水预防。";
+            }
+        }
+
+        /* === Game B: Elderly Urinary === */
+        function handleUriChoice(type, btn) {
+            const fb = document.getElementById('uri-feedback');
+            fb.classList.remove('hidden');
+            if (type === 'correct') {
+                btn.classList.add('border-emerald-500','bg-emerald-50');
+                fb.classList.remove('bg-red-50','text-red-800','border-red-200');
+                fb.classList.add('bg-emerald-50','text-emerald-800','border','border-emerald-200');
+                fb.innerHTML = "<span class='text-lg block mb-1'>✅ 判断正确！</span>老年男性前列腺增生是最常见的原因——增大的前列腺压迫尿道导致排尿困难和不完全排空。加上膀胱逼尿肌萎缩收缩无力，残余尿增多、膀胱有效容量变小，导致尿频、夜尿多且每次量少。";
+            } else {
+                btn.classList.add('border-red-500','bg-red-50');
+                fb.classList.remove('bg-emerald-50','text-emerald-800','border-emerald-200');
+                fb.classList.add('bg-red-50','text-red-800','border','border-red-200');
+                if (type === 'wrong1') {
+                    fb.innerHTML = "<span class='text-lg block mb-1'>❌ 判断错误！</span>82岁老人夜尿6-7次且每次量少、排不净，这绝非"喝水太多"。正常人即使饮水较多，膀胱也能正常蓄满后一次性排空。排不净是梗阻或逼尿肌无力的信号。";
+                } else {
+                    fb.innerHTML = "<span class='text-lg block mb-1'>❌ 判断错误！</span>老年人肾小球滤过率（GFR）是降低的而非升高！肾萎缩后血流减少、功能单位丧失，不可能导致产尿增多。尿频的本质是排不净+膀胱容量减小。";
+                }
+            }
+        }
+
+        /* === Quiz === */
+        const quizData = [
+            { q: "1. 泌尿系统由哪些器官组成？", options: ["肾、输尿管、膀胱、尿道", "肾、胃、膀胱、尿道", "肾、输卵管、膀胱、尿道", "肾、输尿管、直肠、尿道"], answer: 0, explanation: "泌尿系统由肾、输尿管、膀胱和尿道四部分组成。肾产生尿液，经输尿管输送至膀胱储存，最终经尿道排出体外。" },
+            { q: "2. 关于肾脏的位置，以下正确的是？", options: ["左肾低于右肾", "两肾等高", "右肾低于左肾（因肝脏挤压）", "左肾位于盆腔内"], answer: 2, explanation: "由于右侧有体积庞大的肝脏向下挤压，右肾位置低于左肾约半个椎体。左肾T11下缘～L2下缘；右肾T12上缘～L3上缘。" },
+            { q: "3. 肾的三层被膜由内向外依次是？", options: ["肾筋膜→脂肪囊→纤维囊", "纤维囊→脂肪囊→肾筋膜", "脂肪囊→纤维囊→肾筋膜", "纤维囊→肾筋膜→脂肪囊"], answer: 1, explanation: "由内向外：纤维囊（紧贴）→脂肪囊（缓冲固定）→肾筋膜（悬吊包裹）。脂肪囊过少的人（如极度消瘦的长者）容易发生肾下垂。" },
+            { q: "4. 肾蒂内结构从前向后的排列顺序是？", options: ["肾动脉→肾静脉→肾盂", "肾盂→肾动脉→肾静脉", "肾静脉→肾动脉→肾盂", "肾动脉→肾盂→肾静脉"], answer: 2, explanation: "从前向后：静脉→动脉→肾盂。从上向下：动脉→静脉→肾盂。这是解剖学考试最常考的排列口诀。" },
+            { q: "5. 输尿管有几处生理性狭窄？", options: ["1处", "2处", "3处", "4处"], answer: 2, explanation: "三处狭窄：①肾盂输尿管移行处（上狭窄）；②骨盆上口与髂血管交叉处（中狭窄）；③穿入膀胱壁内段（下狭窄）。这三处是结石最常卡住的位置。" },
+            { q: "6. 膀胱内面最重要的解剖标志"膀胱三角"由什么围成？", options: ["三个输尿管口", "两个输尿管口和一个尿道内口", "两个尿道口和一个输尿管口", "膀胱尖、底、颈三点"], answer: 1, explanation: "膀胱三角由两个输尿管口和一个尿道内口三个孔围成，此处黏膜光滑无皱襞，是肿瘤和炎症的好发部位，临床检查时需重点观察。" },
+            { q: "7. 老年人肾脏至80～90岁时重量约减少多少？", options: ["5%～10%", "10%～15%", "20%～30%", "50%以上"], answer: 2, explanation: "老年肾萎缩严重，80～90岁时重量可减少20%～30%，伴随肾小球硬化增多和肾小管退行性改变。" },
+            { q: "8. 女性尿道的长度大约是？", options: ["10～15cm", "8～10cm", "3～5cm", "1～2cm"], answer: 2, explanation: "女性尿道短而直，仅3～5cm，开口于阴道前庭。这使女性比男性更容易发生逆行性尿路感染。" },
+            { q: "9. 排尿反射的初级中枢位于？", options: ["大脑皮层", "延髓", "骶髓", "胸髓"], answer: 2, explanation: "排尿反射的初级中枢在骶髓（S2～S4），高位中枢在大脑皮层。膀胱内尿量达400～500ml时，牵张感受器兴奋，冲动经盆神经传入骶髓。" },
+            { q: "10. 关于肾小球的滤过，以下哪项描述正确？", options: ["原尿缺乏水分", "原尿成分与血浆基本一致，只缺乏血浆蛋白质", "原尿含大量红细胞", "原尿就是终尿"], answer: 1, explanation: "肾小球滤过的原尿与血浆成分基本一致，只是不含（或仅含极微量）大分子蛋白质。原尿经过肾小管重吸收后才形成最终排出的终尿。" },
+            { q: "11. 肾区叩击痛在体表的定位是？", options: ["前腹壁脐周区域", "腰背部竖脊肌外缘与第12肋下缘的夹角处", "腹股沟区", "耻骨联合上方"], answer: 1, explanation: "肾区位于腰背部竖脊肌外侧缘与第12肋下缘的夹角处（也称肋脊角）。肾脏疾病（如肾盂肾炎、肾结石）时此处有明显叩击痛。" },
+            { q: "12. 老年男性夜尿增多、排尿困难的最常见原因是？", options: ["膀胱结石", "前列腺增生压迫尿道", "肾小球肾炎", "输尿管狭窄"], answer: 1, explanation: "老年男性前列腺增生（BPH）是最常见原因。增大的前列腺从尿道周围压迫，导致排尿困难、尿线变细、残余尿增多，进而引起尿频。" },
+            { q: "13. 老年女性容易反复发生尿路感染的最重要解剖学原因是？", options: ["肾脏体积变大", "女性尿道短而直，更易被细菌逆行入侵", "膀胱三角面积增大", "输尿管过长"], answer: 1, explanation: "女性尿道仅3～5cm，短且直，加之开口邻近阴道和肛门，老年女性盆底松弛和清洁不当时极易发生逆行感染。" },
+            { q: "14. 老年人用药需特别注意肾排泄功能下降，以下说法正确的是？", options: ["老年人肾好，可以加大药量", "因肾小球滤过率下降，经肾排泄的药物应适当减量", "老年人吃药效果不好是因为吸收太快", "所有药物都不经过肾脏排泄"], answer: 1, explanation: "老年肾GFR下降导致药物排泄减慢，若不减量极易导致药物在体内蓄积中毒。如氨基糖苷类抗生素、地高辛等都需根据肾功能减量。" },
+            { q: "15. 对于存在尿失禁的老年人，最推荐的无创康复训练方法是？", options: ["大量限制饮水减少尿量", "长期留置导尿管", "盆底肌训练（凯格尔运动）配合定时排尿", "卧床不动减少活动"], answer: 2, explanation: "凯格尔运动通过反复收缩放松盆底肌群来加强括约肌和尿道周围支撑力，是治疗压力性尿失禁最安全有效的一线方法。配合定时排尿训练效果更佳。" }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `<button class="quiz-option w-full text-left font-medium p-3 mt-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition" 
+                                onclick="handleQuizAnswer(${index}, ${optIndex}, this)">
+                                <span class="inline-block w-6 text-slate-400 font-bold">${String.fromCharCode(65 + optIndex)}.</span> ${opt}</button>`;
+            });
+            const qDiv = document.createElement('div');
+            qDiv.className = 'glass-panel p-5 relative overflow-hidden';
+            qDiv.innerHTML = `
+                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-purple-400 to-indigo-400"></div>
+                <h3 class="font-black text-slate-800 text-[15px] leading-relaxed pl-2 mb-3">${item.q}</h3>
+                <div id="options-${index}">${optionsHtml}</div>
+                <div id="exp-${index}" class="hidden mt-4 bg-purple-50 border border-purple-200 text-purple-800 p-3 rounded-xl text-xs font-bold leading-relaxed text-justify">
+                    <span class="text-purple-600">💡 解析：</span>${item.explanation}
+                </div>
+            `;
+            quizContainer.appendChild(qDiv);
+        });
+
+        function handleQuizAnswer(qIndex, selectedOptIndex, btnEl) {
+            if (answeredQuestions.has(qIndex)) return;
+            answeredQuestions.add(qIndex);
+            const isCorrect = selectedOptIndex === quizData[qIndex].answer;
+            const optionsContainer = document.getElementById(`options-${qIndex}`);
+            const buttons = optionsContainer.querySelectorAll('.quiz-option');
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === quizData[qIndex].answer) {
+                    btn.classList.replace('text-slate-600','text-sky-800');
+                    btn.classList.replace('border-slate-200','border-sky-500');
+                    btn.classList.add('bg-sky-50');
+                } else if (idx === selectedOptIndex && !isCorrect) {
+                    btn.classList.replace('text-slate-600','text-red-800');
+                    btn.classList.replace('border-slate-200','border-red-500');
+                    btn.classList.add('bg-red-50');
+                }
+            });
+            const expDiv = document.getElementById(`exp-${qIndex}`);
+            if (isCorrect) {
+                score++;
+                expDiv.innerHTML = `<span class="text-emerald-600 font-black text-[14px] mb-2 block">✅ 回答正确！</span>` + expDiv.innerHTML;
+            } else {
+                const correctLetter = String.fromCharCode(65 + quizData[qIndex].answer);
+                expDiv.innerHTML = `<span class="text-red-500 font-black text-[14px] mb-2 block">❌ 回答错误！正确答案是：${correctLetter}</span>` + expDiv.innerHTML;
+                expDiv.classList.replace('bg-purple-50','bg-red-50');
+                expDiv.classList.replace('border-purple-200','border-red-200');
+                expDiv.classList.replace('text-purple-800','text-red-900');
+            }
+            document.getElementById('score-display').innerText = score;
+            expDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
