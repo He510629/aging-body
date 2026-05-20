@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>脉管探测局 | 血液与淋巴循环</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F8FAFC;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        .app-bg { background: linear-gradient(180deg, #FEE2E2 0%, #EFF6FF 50%, #F8FAFC 100%); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.05);
+            border-radius: 24px;
+        }
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1);
+            z-index: 100; max-height: 85vh; overflow-y: auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.4); opacity:0; pointer-events:none;
+            transition: opacity 0.3s ease; z-index:99;
+        }
+        .overlay.active { opacity:1; pointer-events:auto; }
+        .timeline-line {
+            position: absolute; width: 4px;
+            background: linear-gradient(to bottom, #EF4444, #3B82F6);
+            left: 38px; top: 20px; bottom: 20px; z-index: 0;
+        }
+        .anatomy-node {
+            position: relative; z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .anatomy-node:active { transform: scale(0.95); }
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            border-top: 1px solid #bfdbfe;
+            display: flex; justify-content: space-around;
+            padding: 10px 0; padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 90;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #9CA3AF; font-size: 11px; font-weight: 500;
+            transition: color 0.3s ease; cursor: pointer;
+        }
+        .nav-item.active { color: #3B82F6; }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1); }
+        .nav-item.active .nav-icon { transform: translateY(-4px) scale(1.1); }
+        .page-view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .page-view.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .click-target { cursor: pointer; transition: all 0.2s; }
+        .click-target:active { transform: scale(0.95); }
+        .detail-tab.active { background-color: #3B82F6; color: white; font-weight: bold; }
+        
+        /* Conduction game */
+        .node-btn {
+            transition: all 0.3s;
+        }
+        .node-btn.active {
+            background-color: #EF4444;
+            color: white;
+            border-color: #B91C1C;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+        }
+        .node-btn.passed {
+            background-color: #10B981;
+            color: white;
+            border-color: #047857;
+        }
+    </style>
+</head>
+<body class="app-bg">
+
+    <!-- Top Header -->
+    <header class="pt-12 pb-6 px-6 bg-gradient-to-br from-[#EF4444] to-[#3B82F6] rounded-b-[40px] shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black text-white tracking-tight">脉管系统解析</h1>
+            <p class="text-blue-100 mt-2 text-sm font-medium">心腔瓣膜·循环通路·压迫止血·淋巴防御</p>
+        </div>
+        <div class="absolute right-[-20px] top-6 text-white/10 text-7xl font-black italic">VASCULAR</div>
+        <div class="absolute w-20 h-20 rounded-full bg-white/10 blur-xl top-0 left-10"></div>
+        <div class="absolute w-32 h-32 rounded-full bg-white/10 blur-2xl bottom-[-20px] right-[-20px]"></div>
+    </header>
+
+    <!-- ========== PAGE 1: Anatomy ========== -->
+    <main id="view-anatomy" class="page-view active px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-red-500 rounded-full mr-2"></span>点击节点深度解析脉管系统
+        </h2>
+        <div class="relative pl-2 pb-10">
+            <div class="timeline-line"></div>
+            <!-- Node 1: Heart structure -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(0)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-red-100 flex-shrink-0">❤️</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">动力之源：心脏结构</h3>
+                    <p class="text-xs text-red-600 font-bold mt-1 bg-red-100 inline-block px-2 py-0.5 rounded-full">中纵隔·四腔四瓣·传导系·冠状动脉</p>
+                </div>
+            </div>
+            <!-- Node 2: Blood Circulation -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(1)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-blue-100 flex-shrink-0">🔄</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">大小循环：血液流路</h3>
+                    <p class="text-xs text-blue-600 font-bold mt-1 bg-blue-100 inline-block px-2 py-0.5 rounded-full">肺循环·体循环·动脉硬化高血压</p>
+                </div>
+            </div>
+            <!-- Node 3: Arteries & Compression -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(2)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-red-100 flex-shrink-0">🩸</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">体循环动脉与压迫止血</h3>
+                    <p class="text-xs text-red-600 font-bold mt-1 bg-red-100 inline-block px-2 py-0.5 rounded-full">颈总压迫C6·锁骨下压1肋·子宫交叉</p>
+                </div>
+            </div>
+            <!-- Node 4: Veins & Portal Hypertension -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(3)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-blue-100 flex-shrink-0">🌀</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">体循环静脉与门静脉高压</h3>
+                    <p class="text-xs text-blue-600 font-bold mt-1 bg-blue-100 inline-block px-2 py-0.5 rounded-full">危险三角·大隐曲张·门脉高压三吻合</p>
+                </div>
+            </div>
+            <!-- Node 5: Lymphatic System -->
+            <div class="anatomy-node flex items-center click-target" onclick="openNodeDetail(4)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-green-100 flex-shrink-0">🛡️</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">淋巴管道与淋巴器官</h3>
+                    <p class="text-xs text-green-600 font-bold mt-1 bg-green-100 inline-block px-2 py-0.5 rounded-full">胸导管3/4·脾脾切迹·胸腺萎缩·象皮肿</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 2: Care Interactions ========== -->
+    <main id="view-care" class="page-view px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-blue-500 rounded-full mr-2"></span>脉管实操与急救局
+        </h2>
+
+        <!-- Game 1: Heart Conduction Runner -->
+        <div class="glass-panel p-5 mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-blue-700 text-lg">💓 心脏传导电路图构建</h3>
+                <span class="text-[10px] bg-red-100 text-red-800 px-2 py-1 rounded font-bold">起搏顺序</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">心脏跳动由特殊的传导系统驱动。请按照正确的电信号传递顺序依次点击起搏节点，完成一次心脏收缩搏动！</p>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <button onclick="clickConductionNode(3, this)" class="node-btn w-full bg-white border-2 border-slate-200 py-3 rounded-xl text-xs font-black text-slate-700 hover:bg-slate-50 transition">
+                    房室束 (His束)
+                </button>
+                <button onclick="clickConductionNode(1, this)" class="node-btn w-full bg-white border-2 border-slate-200 py-3 rounded-xl text-xs font-black text-slate-700 hover:bg-slate-50 transition">
+                    窦房结 (Sinoatrial Node)
+                </button>
+                <button onclick="clickConductionNode(5, this)" class="node-btn w-full bg-white border-2 border-slate-200 py-3 rounded-xl text-xs font-black text-slate-700 hover:bg-slate-50 transition">
+                    浦肯野纤维网 (Purkinje)
+                </button>
+                <button onclick="clickConductionNode(2, this)" class="node-btn w-full bg-white border-2 border-slate-200 py-3 rounded-xl text-xs font-black text-slate-700 hover:bg-slate-50 transition">
+                    房室结 (Atrioventricular Node)
+                </button>
+                <button onclick="clickConductionNode(4, this)" class="node-btn w-full bg-white border-2 border-slate-200 py-3 rounded-xl text-xs font-black text-slate-700 hover:bg-slate-50 transition">
+                    左、右束支 (Branches)
+                </button>
+                <button id="reset-cond" onclick="resetConduction()" class="w-full bg-slate-100 border border-slate-300 py-3 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition">
+                    🔄 重置传导
+                </button>
+            </div>
+
+            <div id="cond-feedback" class="p-3 bg-blue-50 text-blue-800 rounded-xl text-xs font-bold leading-relaxed border border-blue-200">
+                📌 电信号从【正常起搏点】开始，请点击正确的首发节点。
+            </div>
+        </div>
+
+        <!-- Game 2: Compression point picker -->
+        <div class="glass-panel p-5 mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-blue-700 text-lg">🚨 动脉大出血急救压迫点</h3>
+                <span class="text-[10px] bg-red-100 text-red-800 px-2 py-1 rounded font-bold">急救止血</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">遇到动脉破裂大出血，必须按压近心端。请根据情境选出最正确的解剖压迫法：</p>
+
+            <div class="space-y-4">
+                <div>
+                    <div class="text-xs font-black text-slate-800 mb-2">Q1: 头面部严重出血，需要压迫颈总动脉止血。正确的操作是？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerComp(1, 'wrong1', this)" class="comp-q1 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            A. 双手用力同时卡住双侧脖子，压迫两侧颈总动脉快速止血。
+                        </button>
+                        <button onclick="answerComp(1, 'correct', this)" class="comp-q1 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            B. 单侧按压胸锁乳突肌前缘，平环状软骨高度，向后内将其压向第6颈椎横突。禁用双侧同时按压。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="comp-part2" class="hidden">
+                    <div class="text-xs font-black text-slate-800 mb-2">Q2: 上肢大出血（如前臂深割伤），应压迫锁骨下动脉。按压点在哪？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerComp(2, 'correct', this)" class="comp-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            A. 锁骨中点上方凹陷处，向后下方压向第一肋。
+                        </button>
+                        <button onclick="answerComp(2, 'wrong1', this)" class="comp-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            B. 腋窝顶部向外侧压迫肱骨头。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="comp-part3" class="hidden">
+                    <div class="text-xs font-black text-slate-800 mb-2">Q3: 照护糖尿病足长者时，需触诊外周动脉评估血供，常选择足背动脉。其触诊位置是？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerComp(3, 'correct', this)" class="comp-q3 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            A. 足背内外踝连线中点，拇长伸肌腱与趾长伸肌腱之间。
+                        </button>
+                        <button onclick="answerComp(3, 'wrong1', this)" class="comp-q3 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            B. 外踝后方，跟骨外侧。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="comp-feedback" class="hidden p-3 rounded-xl text-xs font-medium leading-relaxed"></div>
+            </div>
+        </div>
+
+        <!-- Game 3: Portal Hypertension Connections -->
+        <div class="glass-panel p-5 mb-6">
+            <h3 class="font-black text-blue-700 text-lg mb-1">🔗 门脉高压并发症连线</h3>
+            <p class="text-xs text-slate-500 font-medium mb-4">当肝门静脉回流受阻发生高压时，血液会通过三处交通支逆流入体静脉。请将并发症症状与其对应的吻合静脉丛正确配对：</p>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-2">
+                    <div class="text-xs font-black text-slate-500 mb-1">🔴 并发症/临床表现</div>
+                    <div onclick="selectMatch('A', 'sym')" id="sym-A" class="sym-item bg-white border border-slate-200 p-2.5 rounded-lg text-xs font-bold text-slate-700 cursor-pointer transition">
+                        ① 突发剧烈呕血 (胃食管黏膜撕裂出血)
+                    </div>
+                    <div onclick="selectMatch('B', 'sym')" id="sym-B" class="sym-item bg-white border border-slate-200 p-2.5 rounded-lg text-xs font-bold text-slate-700 cursor-pointer transition">
+                        ② 腹壁静脉曲张 (脐周“海蛇头征”)
+                    </div>
+                    <div onclick="selectMatch('C', 'sym')" id="sym-C" class="sym-item bg-white border border-slate-200 p-2.5 rounded-lg text-xs font-bold text-slate-700 cursor-pointer transition">
+                        ③ 便血/内痔 (肛门静脉曲张破裂)
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="text-xs font-black text-slate-500 mb-1">🧬 逆流扩张的静脉丛</div>
+                    <div onclick="selectMatch('2', 'ana')" id="ana-2" class="ana-item bg-white border border-slate-200 p-2.5 rounded-lg text-xs font-bold text-slate-700 cursor-pointer transition">
+                        Y. 附脐静脉 ⇆ 脐周静脉丛
+                    </div>
+                    <div onclick="selectMatch('1', 'ana')" id="ana-1" class="ana-item bg-white border border-slate-200 p-2.5 rounded-lg text-xs font-bold text-slate-700 cursor-pointer transition">
+                        X. 胃左静脉 ⇆ 食管静脉丛
+                    </div>
+                    <div onclick="selectMatch('3', 'ana')" id="ana-3" class="ana-item bg-white border border-slate-200 p-2.5 rounded-lg text-xs font-bold text-slate-700 cursor-pointer transition">
+                        Z. 肠系膜下静脉 ⇆ 直肠静脉丛
+                    </div>
+                </div>
+            </div>
+            
+            <div id="match-feedback" class="hidden mt-4 p-3 rounded-xl text-xs font-medium leading-relaxed"></div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 3: Quiz ========== -->
+    <main id="view-quiz" class="page-view px-5 pt-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-black text-slate-800 flex items-center">
+                <span class="w-1.5 h-5 bg-blue-500 rounded-full mr-2"></span>脉管系统测评
+            </h2>
+            <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black shadow-inner">
+                得分 <span id="score-display" class="text-lg">0</span>/15
+            </div>
+        </div>
+        <div id="quiz-container" class="space-y-6"></div>
+    </main>
+
+    <!-- ========== BOTTOM SHEET (Node Detail) ========== -->
+    <div class="overlay" id="overlay" onclick="closeNodeDetail()"></div>
+    <div class="bottom-sheet" id="detail-sheet">
+        <div class="p-6">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div class="flex items-center mb-6">
+                <div id="modal-icon" class="text-4xl mr-4 bg-red-50 w-16 h-16 flex items-center justify-center rounded-2xl"></div>
+                <div><h2 id="modal-title" class="text-2xl font-black text-slate-800"></h2></div>
+            </div>
+            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                <button onclick="switchModalTab('normal')" id="mtab-normal" class="detail-tab active flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">✅ 正常结构</button>
+                <button onclick="switchModalTab('aging')" id="mtab-aging" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">⚠️ 老年退化</button>
+                <button onclick="switchModalTab('care')" id="mtab-care" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">🛡️ 照护要点</button>
+            </div>
+            <div id="md-normal" class="modal-content-section"></div>
+            <div id="md-aging" class="modal-content-section hidden"></div>
+            <div id="md-care" class="modal-content-section hidden"></div>
+            <button onclick="closeNodeDetail()" class="mt-8 w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200 transition click-target">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <nav class="bottom-nav">
+        <div class="nav-item active click-target" onclick="switchNav('anatomy',this)"><span class="nav-icon mb-1">🩻</span><span>探索结构</span></div>
+        <div class="nav-item click-target" onclick="switchNav('care',this)"><span class="nav-icon mb-1">🎮</span><span>照护实操</span></div>
+        <div class="nav-item click-target" onclick="switchNav('quiz',this)"><span class="nav-icon mb-1">📝</span><span>答题测评</span></div>
+    </nav>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        /* === Navigation === */
+        function switchNav(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        /* === Anatomy Data === */
+        const anatomyData = [
+            {
+                icon: "❤️", title: "动力之源：心脏结构",
+                normal: "<b>1. 位置和外形</b>：位于胸腔中纵隔内，裹以心包。约2/3在正中线左侧，1/3在右侧。呈倒置圆锥形，分一尖（朝向左前下，由左心室构成）、一底（主要由左心房构成）、二面（胸肋面、膈面）、三缘、四条沟（冠状沟是房室界线；前后室间沟是左右心室界线，会合处称心尖切迹）。<br><br><b>2. 心腔内部</b>：<br>• <b>右心房</b>：有上、下腔静脉口及冠状窦口。房间隔下方有一浅凹，称<b>卵圆窝</b>（胚胎时期卵圆孔闭锁遗迹）。<br>• <b>右心室</b>：流入道有右房室口，附有<b>三尖瓣</b>（三尖瓣环、腱索、乳头肌构成三尖瓣复合体，防止血液倒流）。室壁有<b>节制索</b>（隔缘肉柱）。流出道为动脉圆锥，通肺动脉口，附有肺动脉瓣。<br>• <b>左心房</b>：后部有四个肺静脉入口，前部有左房室口（二尖瓣）。<br>• <b>左心室</b>：流入道有二尖瓣；流出道有主动脉口，附有主动脉瓣。左室壁厚度为右室壁的3倍。<br><br><b>3. 心的血管与传导系</b>：<br>• <b>左冠状动脉</b>：分前室间支和旋支。<br>• <b>右冠状动脉</b>：沿右冠状沟行向膈面。<br>• <b>传导系</b>：特殊分化的心肌细胞。<b>窦房结</b>（正常起搏点，位于上腔静脉与右房交界外膜下）→<b>房室结</b>（在冠状窦口前上方内膜下，起<b>延搁信号</b>作用）→房室束（His束）→左右束支→浦肯野纤维网。<br><br><b>4. 心包</b>：外层纤维心包，内层浆膜心包（分壁层和脏层即心外膜，中间为心包腔，内含浆膜液，过多会形成心包积液）。",
+                aging: "心肌细胞逐渐肥大、纤维化，间质胶原增多，导致心壁硬度增加（舒张功能受损）。<br><br>瓣膜（尤其是二尖瓣和主动脉瓣）常发生黏液样变、钙化硬化，引起关闭不全或狭窄。窦房结起搏细胞数量大幅减少，易发生传导阻滞和老年性心律失常。<br><br>冠状动脉粥样硬化发病率高，管腔狭窄，心肌供血减少。",
+                care: "<b>1. 冠心病照护</b>：关注长者是否诉说突发压榨性胸痛（可放射至左肩、左臂内侧）、气短、出冷汗。一旦怀疑心肌梗死，必须绝对卧床，立即吸氧，舌下含服硝酸甘油并拨打120急救，切忌让患者走动。<br><br><b>2. 心包穿刺考点</b>：心包积液过多会限制心脏舒张（心包填塞），危及生命。心包穿刺通常在左侧第5肋间隙、心浊音界内侧进行，必须防范损伤冠状动脉或刺破心壁。"
+            },
+            {
+                icon: "🔄", title: "大小循环：血液流路",
+                normal: "血液在心血管内周而复始流动，分为肺循环和体循环，它们是同步进行的：<br><br><b>1. 肺循环 (小循环)</b>：<br>• <b>路径</b>：右心室 ➔ 肺动脉干及分支 ➔ 肺泡壁毛细血管网 ➔ 左右肺静脉 ➔ 左心房。<br>• <b>特点</b>：路程短，只流经肺脏；主要功能是完成气体交换，使<span class='text-blue-500 font-bold'>静脉血变成富氧的动脉血</span>。<br><br><b>2. 体循环 (大循环)</b>：<br>• <b>路径</b>：左心室 ➔ 主动脉及其各级分支 ➔ 全身各器官毛细血管网 ➔ 各级静脉 ➔ 上、下腔静脉及冠状窦 ➔ 右心房。<br>• <b>特点</b>：路程长，流经全身各处；主要功能是运送氧气和营养物质供细胞使用，并将代谢废物带走，使<span class='text-red-550 font-bold'>动脉血变成静脉血</span>。<br><br><b>3. 动脉韧带</b>：连于肺动脉干分叉处稍左侧至主动脉弓下缘的结缔组织索，是胚胎时期<b>动脉导管闭锁</b>的遗迹。若出生后未闭锁，称动脉导管未闭，属于先天性心脏病。",
+                aging: "由于血管中层弹力纤维减少、胶原增多及粥样硬化，大动脉管壁弹性明显下降（变硬），从而造成脉压增大和老年收缩期高血压。<br><br>心血管系统对压力感受器的调节敏感性降低，外周阻力血管收缩和舒张反应变慢，老年人易在体位突然改变（如快速起床、排便后猛然起立）时发生<span class='text-red-500 font-bold'>直立性低血压</span>而导致跌倒。",
+                care: "<b>老年高血压与防跌倒照护</b>：<br>① 指导老年人起床时遵守“起床三部曲”或“三个半分钟”：醒来平卧半分钟、坐起半分钟、双腿下垂床沿半分钟，再站立活动，预防直立性低血压导致的脑供血不足性晕厥。<br>② 输液时要高度关注<b>滴速</b>。老年人由于心功能储备下降，输液速度过快（尤其是输入大量等渗盐水时）极易诱发急性左心衰竭（表现为突发呼吸困难、咳粉红色泡沫痰），必须严格控制滴速在每分钟30～40滴以内。"
+            },
+            {
+                icon: "🩸", title: "体循环动脉与压迫止血",
+                normal: "<b>1. 主动脉干分支</b>：主动脉起自左心室，分为升主动脉、主动脉弓和降主动脉（降主动脉又以膈为界分为胸主动脉和腹主动脉）。主动脉弓凸侧发出三条干：<br>• <b>头臂干</b>：分出右颈总动脉和右锁骨下动脉。<br>• <b>左颈总动脉</b>：分布于左侧头颈。<br>• <b>左锁骨下动脉</b>：分布于左上肢。<br><br><b>2. 核心压迫止血点 (临床急救必考)</b>：<br>• <b>颈总动脉</b>：在甲状软骨上缘平面分为颈内和颈外动脉。头面部大出血时，可按压<span class='text-red-650 font-bold'>胸锁乳突肌前缘，平环状软骨高度</span>，将颈总动脉向后内压向<b>第6颈椎横突的颈动脉结节</b>。但<span class='text-red-650 font-bold'>严禁双侧同时压迫</span>，否则会导致大脑瞬间断血发生晕厥、心搏骤停。<br>• <b>锁骨下动脉</b>：越过第1肋上面。上肢大出血可于<span class='text-red-650 font-bold'>锁骨中点上方凹陷处</span>将该动脉向后下方压向<b>第一肋</b>止血。<br>• <b>肱动脉</b>：在臂部肱二头肌内侧沟压向肱骨止血。<br>• <b>股动脉</b>：在腹股沟韧带中点下方压向耻骨止血。<br><br><b>3. 子宫动脉与输尿管关系</b>：子宫动脉起自髂内动脉，在子宫颈外侧约2cm处跨越输尿管前上方。解剖学俗称“<b>桥下流水</b>”（桥为子宫动脉，水为输尿管）。行子宫切除术结扎子宫动脉时，必须高度小心，切勿误结扎或损伤输尿管！<br><br><b>4. 足背动脉</b>：在外踝与内踝连线中点，拇长伸肌腱与趾长伸肌腱之间，可摸到足背动脉搏动，是外周血管病变检查的标志。",
+                aging: "体循环各主要动脉发生硬化，内膜粗糙。下肢动脉粥样硬化闭塞症在老年人中高发，常表现为间歇性跛行，严重时下肢坏疽。<br><br>下肢远端动脉（如足背动脉）搏动可因硬化减弱甚至消失。",
+                care: "<b>1. 糖尿病足足背动脉触诊</b>：对患有糖尿病的老年长者，每日照护洗脚时必须常规触摸其双侧<b>足背动脉搏动</b>。若发现一侧搏动明显减弱、消失，或伴有足部皮肤发凉、苍白，提示下肢严重缺血，必须及时就医防范糖尿病足溃疡坏疽。<br><br><b>2. 结扎子宫动脉注意点</b>：在结扎子宫动脉切除子宫手术前，必须熟悉其与输尿管的『桥下流水』位置，避免误结扎输尿管导致肾积水或尿瘘。"
+            },
+            {
+                icon: "🌀", title: "体循环静脉与门静脉高压",
+                normal: "<b>1. 面静脉与危险三角</b>：面静脉无静脉瓣，向上通过眼上、下静脉与颅内的海绵窦相交通。鼻根至两侧口角的三角区称为<span class='text-red-650 font-bold'>危险三角</span>。此区发生化脓性感染时，若受挤压，细菌或栓子可逆行入脑，引起海绵窦栓塞和脑膜炎。<br><br><b>2. 上肢浅静脉</b>：手背静脉网 ➔ <b>头静脉</b>（外侧上行）、<b>贵要静脉</b>（内侧上行）及<b>肘正中静脉</b>（连接两者，临床<span class='text-blue-600 font-bold'>静脉穿刺、采血最常用</span>部位）。<br><br><b>3. 下肢浅静脉</b>：<br>• <b>大隐静脉</b>：起自足背静脉弓内侧端，行于<span class='text-blue-600 font-bold'>内踝前方</span>、股骨内侧髁后方，注入股静脉。有5条高位属支（旋髂浅、腹壁浅、阴部外、股内侧浅、股外侧浅静脉）。<br>• <b>小隐静脉</b>：起自足背静脉弓外侧，行于外踝后方，注入腘静脉。<br><br><b>4. 肝门静脉系 (核心考点)</b>：由脾静脉和肠系膜上静脉在胰颈后方汇合而成，是肝的功能血管。<b>无静脉瓣，两端都是毛细血管</b>。它与体循环（腔静脉系）有三处广泛吻合：<br>① <b>食管静脉丛</b>：门静脉 ➔ 胃左静脉 ➔ 食管静脉丛 ➔ 奇静脉 ➔ 上腔静脉。<br>② <b>直肠静脉丛</b>：门静脉 ➔ 脾/肠系膜下静脉 ➔ 直肠静脉丛 ➔ 髂内静脉 ➔ 下腔静脉。<br>③ <b>脐周静脉丛</b>：门静脉 ➔ 附脐静脉 ➔ 脐周静脉丛 ➔ 上、下腔静脉。",
+                aging: "老年人下肢静脉壁弹性下降，静脉瓣膜关闭不全，血液逆流淤积，极易导致<b>大隐静脉曲张</b>，表现为下肢静脉像蚯蚓一样迂曲扩张。<br><br>长期卧床、手术后或久坐的老年人，血流缓慢加之高凝状态，极易形成<b>下肢深静脉血栓 (DVT)</b>。一旦血栓脱落，随血流回心进入肺动脉，会造成致命的<b>肺栓塞</b>！",
+                care: "<b>1. 面部危险三角照护</b>：千万叮嘱长者和家属，面部鼻唇三角区的粉刺、疖子<b>绝对不能用手挤压</b>，防止感染逆行入脑。<br><br><b>2. 下肢静脉血栓与曲张预防</b>：鼓励长者避免跷二郎腿、长时间久坐，卧床长者需指导进行床上主动/被动足踝踝泵运动（屈伸踝关节），促进静脉回流。若发现长者一侧下肢突发肿胀、剧痛，皮肤苍白或发绀，高度怀疑深静脉血栓，<b>此时绝对禁止按摩或用力拍打下肢</b>，防止血栓脱落发生肺栓塞。<br><br><b>3. 门脉高压并发症</b>：肝硬化引发门脉高压时，血液逆流：<br>• 食管静脉曲张破裂 ➔ <b>突发大呕血</b>（极为凶险）；<br>• 直肠静脉曲张破裂 ➔ <b>便血/痔疮</b>；<br>• 脐周静脉曲张 ➔ 出现以脐为中心的放射状曲张血管，称<b>“海蛇头征”</b>。同时患者多伴有脾肿大和腹水。"
+            },
+            {
+                icon: "🛡️", title: "淋巴管道与淋巴器官",
+                normal: "淋巴系统是心血管的辅助结构，参与物质运输、液体平衡调节和免疫防御。由淋巴管道、淋巴器官和淋巴组织组成。<br><br><b>1. 淋巴管道</b>：<br>• <b>毛细淋巴管</b>：以盲端起始，内皮细胞间隙大，通透性极高，大分子蛋白、细胞碎片、癌细胞极易进入。上皮、角膜、晶状体、软骨、脑和脊髓无毛细淋巴管。<br>• <b>淋巴管</b>：外观呈<b>串珠样</b>（内有丰富瓣膜）。<br>• <b>淋巴干 (9条)</b>：左右颈干、左右锁骨下干、左右支气管纵隔干、左右腰干、肠干（1条，不成对）。<br>• <b>淋巴导管 (2条，核心)</b>：<br>① <b>胸导管</b>：收纳全身<b>3/4</b>的淋巴（下半身及左上半身）。起自<b>乳糜池</b>（位于第1腰椎前方，由左右腰干和肠干汇合而成），穿膈的主动脉裂孔入胸腔，最后注入<b>左静脉角</b>。<br>② <b>右淋巴导管</b>：收纳全身<b>1/4</b>的淋巴（右上半身），注入<b>右静脉角</b>。<br><br><b>2. 淋巴器官</b>：<br>• <b>淋巴结</b>：椭圆形，隆凸面接输入管，凹陷面（淋巴结门）接输出管。成群分布，具有过滤淋巴液和清除病原体的作用。<br>• <b>脾 (人体最大的淋巴器官)</b>：位于左季肋区，第9～11肋深面，长轴与第10肋一致。脾上缘锐利，有2～3个<b>脾切迹</b>（临床触诊触及脾切迹是触及脾的标志）。功能：储血、造血、清除衰老红细胞、发生免疫应答。<br>• <b>胸腺</b>：位于胸骨柄后方，是T细胞分化发育的场所。分泌胸腺素和胸腺生成素。",
+                aging: "<b>胸腺萎缩</b>：胸腺自青春期达到巅峰后开始进行性萎缩，至老年期几乎完全被脂肪组织替代，导致老年人幼稚T细胞输出急剧降至极低水平，细胞免疫功能严重减退。<br><br>淋巴结体积缩小、皮质区萎缩、淋巴滤泡减少，巨噬细胞的吞噬能力减弱，使得老年人对新型病原体的初次免疫应答极弱，且易发生自身免疫性疾病或肿瘤细胞漏网转移。<br><br>脾脏白髓萎缩，红髓充血，滤过屏障效率降低。",
+                care: "<b>1. 癌细胞转移与淋巴旁路</b>：由于毛细淋巴管通透性大，癌症常经淋巴道转移。通常癌细胞会先被淋巴结拦截，但甲状腺、食管和肝脏的部分淋巴管可以<span class='text-red-500 font-bold'>不经过淋巴结过滤，直接注入胸导管</span>，这意味着这些部位的癌症一旦发生，极易在早期发生极其迅速的全身性远处转移，临床照护中需高度警惕。<br><br><b>2. 丝虫病与象皮肿</b>：丝虫寄生于淋巴管内引起内膜炎，阻塞管腔导致淋巴回流障碍，高度淤滞的淋巴液刺激周围皮下组织异常增生，使小腿或阴囊皮肤异常增厚变硬，外观粗糙如大象皮，临床称为<b>“象皮肿”</b>。"
+            }
+        ];
+
+        /* === Modal Handling === */
+        function openNodeDetail(i) {
+            const d = anatomyData[i];
+            document.getElementById('modal-icon').innerText = d.icon;
+            document.getElementById('modal-title').innerText = d.title;
+            document.getElementById('md-normal').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.normal}</p>`;
+            document.getElementById('md-aging').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.aging}</p>`;
+            document.getElementById('md-care').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.care}</p>`;
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('detail-sheet').classList.add('open');
+            switchModalTab('normal');
+        }
+        function closeNodeDetail() {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('detail-sheet').classList.remove('open');
+        }
+        function switchModalTab(id) {
+            ['normal','aging','care'].forEach(t => {
+                document.getElementById('mtab-'+t).classList.remove('active');
+                document.getElementById('md-'+t).classList.add('hidden');
+            });
+            document.getElementById('mtab-'+id).classList.add('active');
+            document.getElementById('md-'+id).classList.remove('hidden');
+        }
+
+        /* === Game 1: Heart Conduction Runner === */
+        let expectedStep = 1;
+        const conductionLabels = [
+            "窦房结 (Sinoatrial Node) - 起搏器，释放最初电冲动！",
+            "房室结 (Atrioventricular Node) - 产生『短暂延搁』，让心房完全排空、心室充盈！",
+            "房室束 (His束) - 电信号穿过纤维支架进入室间隔！",
+            "左、右束支 (Branches) - 信号兵分两路下行至心尖！",
+            "浦肯野纤维网 (Purkinje) - 激动心室肌，心室爆发性收缩，泵出血液！"
+        ];
+
+        function clickConductionNode(stepNum, btnEl) {
+            const fb = document.getElementById('cond-feedback');
+            if (stepNum !== expectedStep) {
+                fb.className = "p-3 bg-red-50 text-red-800 rounded-xl text-xs font-bold leading-relaxed border border-red-200";
+                fb.innerHTML = `❌ <b>电信号传导中断！</b>顺序错误。当前期望的是：<b>${conductionLabels[expectedStep-1].split(" - ")[0]}</b>。请点击重置后重新挑战。`;
+                return;
+            }
+
+            btnEl.classList.add('passed');
+            fb.className = "p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold leading-relaxed border border-emerald-200";
+            fb.innerHTML = `✅ <b>传导成功：</b>${conductionLabels[stepNum-1]}`;
+            
+            if (expectedStep === 5) {
+                fb.innerHTML += "<br><br>🎉 <b>完美通关！</b>心脏成功搏动一次！请注意房室结的『短暂延搁』生理作用：它确保心房和心室不会同时收缩，使心室有充足时间充盈血液。";
+            } else {
+                expectedStep++;
+            }
+        }
+
+        function resetConduction() {
+            expectedStep = 1;
+            document.querySelectorAll('.node-btn').forEach(btn => {
+                btn.classList.remove('passed','active');
+            });
+            const fb = document.getElementById('cond-feedback');
+            fb.className = "p-3 bg-blue-50 text-blue-800 rounded-xl text-xs font-bold leading-relaxed border border-blue-200";
+            fb.innerHTML = "📌 电信号从【正常起搏点】开始，请点击第一步：窦房结。";
+        }
+
+        /* === Game 2: Compression point picker === */
+        function answerComp(qIndex, choice, btnEl) {
+            const fb = document.getElementById('comp-feedback');
+            fb.classList.remove('hidden');
+
+            if (qIndex === 1) {
+                if (choice === 'correct') {
+                    btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 回答正确！</b>按压位置平环状软骨，对准第6颈椎横突结节。必须单侧按压！因为如果双侧同时按压，不仅会完全阻断大脑的血液供应造成昏迷，还会强烈刺激颈动脉窦压力感受器，引起反射性心搏骤停、血压暴跌，极度危险！";
+                    document.getElementById('comp-part2').classList.remove('hidden');
+                } else {
+                    btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 极其危险的操作！</b>双手同时掐住双侧颈总动脉会导致脑缺血昏迷，并触发颈动脉窦反射使心搏骤停。请选择B！";
+                }
+            } else if (qIndex === 2) {
+                if (choice === 'correct') {
+                    btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 回答正确！</b>锁骨下动脉越过第一肋上面，所以在锁骨中点上方，向后下方压向第一肋是阻断上肢血流的经典手法。";
+                    document.getElementById('comp-part3').classList.remove('hidden');
+                } else {
+                    btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 答错了。</b>肱动脉虽然可以止血，但是锁骨下动脉更靠近近心端，且压在坚硬的第一肋上效果更好。";
+                }
+            } else if (qIndex === 3) {
+                if (choice === 'correct') {
+                    btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>🎉 挑战成功！</b>足背动脉位于内外踝连线中点，拇长伸肌腱与趾长伸肌腱之间，表浅易摸。糖尿病足患者下肢硬化闭塞时，此处搏动减弱，是临床照护必查项目。";
+                } else {
+                    btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 答错了。</b>外踝后方摸到的是小隐静脉行程，跟骨外侧没有大的可摸搏动的动脉。足背动脉在足背正中双肌腱之间。";
+                }
+            }
+        }
+
+        /* === Game 3: Connection game === */
+        let selectedSym = null;
+        let selectedAna = null;
+
+        const correctPairs = {
+            'A': '1', // 呕血 -> 食管静脉丛
+            'B': '2', // 脐周曲张 -> 附脐静脉/脐周静脉丛
+            'C': '3'  // 便血 -> 直肠静脉丛
+        };
+        const pairDetails = {
+            'A-1': "<b>✅ 连线正确！</b>肝门静脉高压 ➔ 血液逆流入胃左静脉 ➔ 引起食管静脉丛曲张。管壁极其薄，在进食粗糙食物或胃酸反流时极易破裂，发生喷射性大呕血，是肝硬化致死性极高的并发症！",
+            'B-2': "<b>✅ 连线正确！</b>肝门静脉高压 ➔ 血液逆流至附脐静脉 ➔ 导致脐周静脉丛曲张呈放射状，被称为“海蛇头征” (Caput medusae)。",
+            'C-3': "<b>✅ 连线正确！</b>肝门静脉高压 ➔ 血液逆流至肠系膜下静脉 ➔ 直肠静脉丛淤血扩张成痔，破裂可引发便血。"
+        };
+
+        function selectMatch(id, type) {
+            if (type === 'sym') {
+                document.querySelectorAll('.sym-item').forEach(el => el.classList.remove('bg-blue-100', 'border-blue-500'));
+                selectedSym = id;
+                document.getElementById('sym-' + id).classList.add('bg-blue-100', 'border-blue-500');
+            } else {
+                document.querySelectorAll('.ana-item').forEach(el => el.classList.remove('bg-blue-100', 'border-blue-500'));
+                selectedAna = id;
+                document.getElementById('ana-' + id).classList.add('bg-blue-100', 'border-blue-500');
+            }
+
+            if (selectedSym && selectedAna) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const fb = document.getElementById('match-feedback');
+            fb.classList.remove('hidden');
+
+            if (correctPairs[selectedSym] === selectedAna) {
+                const pairKey = selectedSym + '-' + selectedAna;
+                fb.className = "mt-4 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                fb.innerHTML = pairDetails[pairKey];
+                
+                // Color items green
+                document.getElementById('sym-' + selectedSym).className = "sym-item bg-emerald-50 border border-emerald-500 p-2.5 rounded-lg text-xs font-bold text-emerald-800 pointer-events-none";
+                document.getElementById('ana-' + selectedAna).className = "ana-item bg-emerald-50 border border-emerald-500 p-2.5 rounded-lg text-xs font-bold text-emerald-800 pointer-events-none";
+                
+                selectedSym = null;
+                selectedAna = null;
+            } else {
+                fb.className = "mt-4 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                fb.innerHTML = "❌ <b>连线错误！</b>两者的解剖吻合关系不匹配。请重新选择。";
+                
+                // Remove blue border
+                document.getElementById('sym-' + selectedSym).classList.remove('bg-blue-100', 'border-blue-500');
+                document.getElementById('ana-' + selectedAna).classList.remove('bg-blue-100', 'border-blue-500');
+                selectedSym = null;
+                selectedAna = null;
+            }
+        }
+
+        /* === Quiz Data === */
+        const quizData = [
+            { q: "1. 正常人的心脏约有2/3位于正中线的哪一侧？", options: ["右侧", "左侧", "正中", "偏上方"], answer: 1, explanation: "心脏约2/3位于身体正中矢状面的左侧，1/3位于右侧。周围裹以心包，位于胸腔中纵隔内。" },
+            { q: "2. 心腔内部中，卵圆窝位于哪个腔的壁上？", options: ["右心房", "右心室", "左心房", "左心室"], answer: 0, explanation: "卵圆窝是房间隔右侧面下部的一处浅凹，是胚胎时期卵圆孔闭锁的遗迹，也是房间隔缺损的好发部位。" },
+            { q: "3. 构成心脏三尖瓣复合体，防止血液逆流的结构不包括？", options: ["三尖瓣环", "腱索", "乳头肌", "Supraventricular crest (室上嵴)"], answer: 3, explanation: "三尖瓣复合体由三尖瓣环、三尖瓣、腱索和乳头肌共同组成。室上嵴是右心室内流入道与流出道的解剖分界线，不属于瓣膜复合体。" },
+            { q: "4. 心脏的正常起搏点位于？", options: ["房室结", "房室束 (His束)", "窦房结", "浦肯野纤维"], answer: 2, explanation: "窦房结位于上腔静脉与右心房交界处的心外膜下，是心脏收缩跳动的正常起搏点。" },
+            { q: "5. 关于肺循环（小循环）的流经途径，正确的是？", options: ["左心室→主动脉→全身毛细血管→腔静脉→右心房", "右心室→肺动脉干及分支➔肺泡毛细血管➔肺静脉➔左心房", "右心房→肺静脉→肺泡毛细血管→肺动脉→左心室", "左心房→肺动脉→肺泡毛细血管→肺静脉→右心室"], answer: 1, explanation: "小循环从小心的右侧开始：右心室 ➔ 肺动脉干及各级分支 ➔ 肺泡壁毛细血管网（静脉血变动脉血） ➔ 肺静脉 ➔ 左心房。" },
+            { q: "6. 连于肺动脉干分叉处稍左侧与主动脉弓下缘之间的纤维性结构是？", options: ["动脉韧带", "冠状韧带", "卵圆窝", "前室间支"], answer: 0, explanation: "动脉韧带是胚胎时期动脉导管闭锁后的结缔组织遗迹，若生后不闭锁则为动脉导管未闭。" },
+            { q: "7. 主动脉弓凸侧发出的三条大分支，从右向左依次是？", options: ["左锁骨下动脉、左颈总动脉、头臂干", "头臂干、左颈总动脉、左锁骨下动脉", "右颈总动脉、右锁骨下动脉、左颈总动脉", "头臂干、右锁骨下动脉、左锁骨下动脉"], answer: 1, explanation: "主动脉弓分支从右向左：头臂干（进而分出右颈总和右锁骨下）、左颈总动脉、左锁骨下动脉。" },
+            { q: "8. 临床头面部大出血，压迫颈总动脉紧急止血的部位是？", options: ["锁骨中点上方凹陷压向第一肋", "胸锁乳突肌前缘，平环状软骨高度，压向第6颈椎横突", "下颌骨下缘压向面骨", "平甲状软骨上缘压向气管"], answer: 1, explanation: "颈总动脉止血点在胸锁乳突肌前缘，平环状软骨高度，将其压向第6颈椎横突的颈动脉结节。切忌双侧同时按压！" },
+            { q: "9. 解剖学上的“桥下流水”是指什么结构交叉跨越关系？", options: ["肾动脉跨过输尿管", "子宫动脉从前上方跨过输尿管", "输精管跨过髂外血管", "卵巢动脉跨过髂内静脉"], answer: 1, explanation: "女性子宫动脉在子宫颈外侧约2cm处从前上方跨过输尿管。手术结扎子宫动脉时极易误伤输尿管，故称“桥下流水”。" },
+            { q: "10. 面部“危险三角”之所以危险，最重要的解剖学原因是什么？", options: ["该区域的动脉管腔过于细小", "面静脉无静脉瓣，且与颅内海绵窦相通，感染极易逆行入脑", "该区域痛觉神经末梢极丰富", "该区域淋巴结极其密集"], answer: 1, explanation: "鼻根至两侧口角的三角区，面静脉无静脉瓣，可通过眼静脉与颅内海绵窦交通，挤压疖肿会导致细菌逆行引发海绵窦血栓或脑膜炎。" },
+            { q: "11. 临床采血、输液最常用的上肢浅静脉是？", options: ["头静脉", "贵要静脉", "肘正中静脉", "桡静脉"], answer: 2, explanation: "肘正中静脉斜穿于肘窝，连接头静脉和贵要静脉，位置表浅且相对固定，是临床输液和抽血的首选血管。" },
+            { q: "12. 下肢浅静脉曲张，临床上主要发生在哪个静脉流域？", options: ["大隐静脉", "股静脉", "腘静脉", "胫前静脉"], answer: 0, explanation: "大隐静脉长且瓣膜承受压力大。当瓣膜关闭不全、深静脉回流受阻时，血液逆流引发大隐静脉迂曲扩张，即大隐静脉曲张。" },
+            { q: "13. 肝门静脉高压引发大呕血，是因为血液逆流通过了哪处吻合静脉？", options: ["脐周静脉丛", "直肠静脉丛", "食管静脉丛", "腹壁下静脉"], answer: 2, explanation: "门静脉高压时，门静脉血经胃左静脉逆流至食管静脉丛，引起食管下段和胃底静脉曲张。破裂时发生致命性的喷射性大呕血。" },
+            { q: "14. 人体最大的淋巴器官是？", options: ["淋巴结", "脾", "胸腺", "扁桃体"], answer: 1, explanation: "脾脏是人体最大的淋巴器官，位于左季肋区，第9～11肋深面，上缘有特征性的脾切迹。" },
+            { q: "15. 收纳全身3/4淋巴液并注入左静脉角的淋巴主干是？", options: ["右淋巴导管", "肠干", "胸导管（起自乳糜池）", "左腰干"], answer: 2, explanation: "胸导管是全身最大的淋巴导管，收纳身体下半身和左上半身（共占全身3/4）的淋巴，起自第1腰椎前方的乳糜池，最后注入左静脉角。" }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `<button class="quiz-option w-full text-left font-medium p-3 mt-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition" 
+                                onclick="handleQuizAnswer(${index}, ${optIndex}, this)">
+                                <span class="inline-block w-6 text-slate-400 font-bold">${String.fromCharCode(65 + optIndex)}.</span> ${opt}</button>`;
+            });
+            const qDiv = document.createElement('div');
+            qDiv.className = 'glass-panel p-5 relative overflow-hidden';
+            qDiv.innerHTML = `
+                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-red-400 to-blue-400"></div>
+                <h3 class="font-black text-slate-800 text-[15px] leading-relaxed pl-2 mb-3">${item.q}</h3>
+                <div id="options-${index}">${optionsHtml}</div>
+                <div id="exp-${index}" class="hidden mt-4 bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-xl text-xs font-bold leading-relaxed text-justify">
+                    <span class="text-blue-600">💡 解析：</span>${item.explanation}
+                </div>
+            `;
+            quizContainer.appendChild(qDiv);
+        });
+
+        function handleQuizAnswer(qIndex, selectedOptIndex, btnEl) {
+            if (answeredQuestions.has(qIndex)) return;
+            answeredQuestions.add(qIndex);
+            const isCorrect = selectedOptIndex === quizData[qIndex].answer;
+            const optionsContainer = document.getElementById(`options-${qIndex}`);
+            const buttons = optionsContainer.querySelectorAll('.quiz-option');
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === quizData[qIndex].answer) {
+                    btn.classList.replace('text-slate-600','text-emerald-850');
+                    btn.classList.replace('border-slate-200','border-emerald-500');
+                    btn.classList.add('bg-emerald-50');
+                } else if (idx === selectedOptIndex && !isCorrect) {
+                    btn.classList.replace('text-slate-600','text-red-800');
+                    btn.classList.replace('border-slate-200','border-red-500');
+                    btn.classList.add('bg-red-50');
+                }
+            });
+            const expDiv = document.getElementById(`exp-${qIndex}`);
+            if (isCorrect) {
+                score++;
+                expDiv.innerHTML = `<span class="text-emerald-600 font-black text-[14px] mb-2 block">✅ 回答正确！</span>` + expDiv.innerHTML;
+            } else {
+                const correctLetter = String.fromCharCode(65 + quizData[qIndex].answer);
+                expDiv.innerHTML = `<span class="text-red-500 font-black text-[14px] mb-2 block">❌ 回答错误！正确答案是：${correctLetter}</span>` + expDiv.innerHTML;
+                expDiv.classList.replace('bg-blue-50','bg-red-50');
+                expDiv.classList.replace('border-blue-200','border-red-200');
+                expDiv.classList.replace('text-blue-800','text-red-900');
+            }
+            document.getElementById('score-display').innerText = score;
+            expDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

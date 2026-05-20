@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>生殖探秘与照护 | 老年生理与照护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #FFF5F7;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        .app-bg { background: linear-gradient(180deg, #FCE7F3 0%, #FFF5F7 100%); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px rgba(219, 39, 119, 0.05);
+            border-radius: 24px;
+        }
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1);
+            z-index: 100; max-height: 85vh; overflow-y: auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.4); opacity:0; pointer-events:none;
+            transition: opacity 0.3s ease; z-index:99;
+        }
+        .overlay.active { opacity:1; pointer-events:auto; }
+        .timeline-line {
+            position: absolute; width: 4px;
+            background: linear-gradient(to bottom, #F472B6, #DB2777);
+            left: 38px; top: 20px; bottom: 20px; z-index: 0;
+        }
+        .anatomy-node {
+            position: relative; z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .anatomy-node:active { transform: scale(0.95); }
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            border-top: 1px solid #fbcfe8;
+            display: flex; justify-content: space-around;
+            padding: 10px 0; padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 90;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #9CA3AF; font-size: 11px; font-weight: 500;
+            transition: color 0.3s ease; cursor: pointer;
+        }
+        .nav-item.active { color: #DB2777; }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1); }
+        .nav-item.active .nav-icon { transform: translateY(-4px) scale(1.1); }
+        .page-view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .page-view.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .click-target { cursor: pointer; transition: all 0.2s; }
+        .click-target:active { transform: scale(0.95); }
+        .detail-tab.active { background-color: #DB2777; color: white; font-weight: bold; }
+        
+        /* Urethra game styles */
+        .catheter-visual {
+            transition: height 0.5s ease, background 0.3s;
+        }
+        .urethra-point {
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body class="app-bg">
+
+    <!-- Top Header -->
+    <header class="pt-12 pb-6 px-6 bg-gradient-to-br from-[#DB2777] to-[#EC4899] rounded-b-[40px] shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black text-white tracking-tight">生殖系统解析</h1>
+            <p class="text-pink-100 mt-2 text-sm font-medium">结构·老化·实操：从生殖腺到临床导尿护理</p>
+        </div>
+        <div class="absolute right-[-20px] top-6 text-white/10 text-7xl font-black italic">REPRO</div>
+        <div class="absolute w-20 h-20 rounded-full bg-white/10 blur-xl top-0 left-10"></div>
+        <div class="absolute w-32 h-32 rounded-full bg-white/10 blur-2xl bottom-[-20px] right-[-20px]"></div>
+    </header>
+
+    <!-- ========== PAGE 1: Anatomy ========== -->
+    <main id="view-anatomy" class="page-view active px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-pink-500 rounded-full mr-2"></span>点击节点深度解析生殖器官
+        </h2>
+        <div class="relative pl-2 pb-10">
+            <div class="timeline-line"></div>
+            <!-- Node 1: Male Gonad -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(0)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-pink-100 flex-shrink-0">🍒</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">男性内生殖器：生殖腺与管道</h3>
+                    <p class="text-xs text-pink-600 font-bold mt-1 bg-pink-100 inline-block px-2 py-0.5 rounded-full">睾丸·附睾·输精管精索部·隐睾</p>
+                </div>
+            </div>
+            <!-- Node 2: Male Urethra & Prostate -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(1)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-pink-100 flex-shrink-0">🌰</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">男性尿道与前列腺</h3>
+                    <p class="text-xs text-purple-600 font-bold mt-1 bg-purple-100 inline-block px-2 py-0.5 rounded-full">三狭窄三扩大两弯曲·前列腺增生</p>
+                </div>
+            </div>
+            <!-- Node 3: Female Gonad & Tube -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(2)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-pink-100 flex-shrink-0">🌸</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">女性内生殖器：卵巢与输卵管</h3>
+                    <p class="text-xs text-pink-600 font-bold mt-1 bg-pink-100 inline-block px-2 py-0.5 rounded-full">悬韧带·卵泡黄体·受精壶腹·结扎峡部</p>
+                </div>
+            </div>
+            <!-- Node 4: Uterus & Vagina -->
+            <div class="anatomy-node flex items-center click-target" onclick="openNodeDetail(3)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-pink-100 flex-shrink-0">🤰</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">子宫、阴道与外生殖器</h3>
+                    <p class="text-xs text-red-600 font-bold mt-1 bg-red-100 inline-block px-2 py-0.5 rounded-full">前倾前屈四韧带·阴道穹后部·坠胀感</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 2: Care Interactions ========== -->
+    <main id="view-care" class="page-view px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-pink-500 rounded-full mr-2"></span>临床技能与情境互动
+        </h2>
+
+        <!-- Interaction 1: Male Catheterization Game -->
+        <div class="glass-panel p-5 mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-pink-700 text-lg">🚹 模拟实操：男性导尿术通关</h3>
+                <span class="text-[10px] bg-pink-100 text-pink-800 px-2 py-1 rounded font-bold">解剖挑战</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">男性尿道“长、窄、弯”，导尿极易受阻。请根据插管位置，执行正确的解剖操作使导管顺利进入膀胱！</p>
+
+            <div class="grid grid-cols-12 gap-4">
+                <!-- Visual Urethra Tube Column -->
+                <div class="col-span-5 bg-pink-50 rounded-2xl p-3 border border-pink-200 flex flex-col items-center justify-between relative h-[380px] shadow-inner">
+                    <!-- Bladder -->
+                    <div class="text-center z-10">
+                        <span class="text-3xl">🎈</span>
+                        <div class="text-[9px] text-pink-700 font-black mt-0.5">膀胱 (内部)</div>
+                    </div>
+                    
+                    <!-- Urethra path container -->
+                    <div class="absolute top-[50px] bottom-[30px] w-4 bg-pink-100 border-x border-pink-300 rounded-full flex flex-col justify-between items-center py-2">
+                        <!-- Points -->
+                        <div id="up-internal" class="urethra-point w-3 h-3 rounded-full bg-slate-300 border border-slate-400" title="尿道内口"></div>
+                        <div id="up-subpubic" class="urethra-point w-3 h-3 rounded-full bg-slate-300 border border-slate-400" title="耻骨下弯"></div>
+                        <div id="up-membranous" class="urethra-point w-3 h-3 rounded-full bg-slate-300 border border-slate-400" title="尿道膜部"></div>
+                        <div id="up-prepubic" class="urethra-point w-3 h-3 rounded-full bg-slate-300 border border-slate-400" title="耻骨前弯"></div>
+                        <div id="up-external" class="urethra-point w-3 h-3 rounded-full bg-pink-600 border border-pink-800" title="尿道外口"></div>
+                    </div>
+
+                    <!-- Catheter simulation tube overlay -->
+                    <div id="cath-tube" class="catheter-visual absolute bottom-[30px] w-2 bg-blue-500 rounded-t-full shadow" style="height: 0px;"></div>
+
+                    <!-- Scrotum indicator -->
+                    <div class="text-center z-10 mb-2">
+                        <span class="text-xl">阴茎/外口</span>
+                    </div>
+                </div>
+
+                <!-- Control Column -->
+                <div class="col-span-7 flex flex-col justify-between h-[380px]">
+                    <div class="bg-white rounded-xl p-3 border border-pink-100 flex-grow mb-3 overflow-y-auto">
+                        <div class="text-xs font-black text-pink-700 mb-1">📢 当前状态：</div>
+                        <div id="cath-status" class="text-xs text-slate-700 font-medium leading-relaxed">
+                            导尿管正停留在尿道外口。请点击“推进导尿管”开始操作。
+                        </div>
+                    </div>
+
+                    <!-- Interactive Actions -->
+                    <div class="space-y-2">
+                        <button id="btn-cath-push" onclick="pushCatheter()" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs py-2.5 px-2 rounded-xl transition click-target flex items-center justify-center">
+                            ➡️ 推进导尿管 (1-2cm)
+                        </button>
+                        <button id="btn-cath-lift" onclick="liftPenis()" class="w-full bg-slate-200 text-slate-700 font-bold text-xs py-2.5 px-2 rounded-xl transition cursor-not-allowed opacity-50" disabled>
+                            🍆 将阴茎提起60° (消除耻骨前弯)
+                        </button>
+                        <button id="btn-cath-rotate" onclick="rotateCatheter()" class="w-full bg-slate-200 text-slate-700 font-bold text-xs py-2.5 px-2 rounded-xl transition cursor-not-allowed opacity-50" disabled>
+                            🔄 缓慢旋转管身并推入 (过膜部)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drainage phase (hidden initially) -->
+            <div id="drain-block" class="hidden mt-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div class="text-xs font-black text-purple-800 mb-2">⚠️ 导尿成功！出现严重急性尿潴留，尿袋瞬间充满，你应该：</div>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="handleDrainOption('wrong')" class="bg-white border border-slate-200 hover:bg-slate-50 p-2 text-left rounded-lg text-xs font-bold text-slate-700 transition">
+                        A. 一口气将膀胱内尿液全部引流完毕，让患者感到舒服。
+                    </button>
+                    <button onclick="handleDrainOption('correct')" class="bg-white border border-slate-200 hover:bg-slate-50 p-2 text-left rounded-lg text-xs font-bold text-slate-700 transition">
+                        B. 首次引流200-300ml，夹闭导管，分时间段、分批引流。
+                    </button>
+                </div>
+                <div id="drain-feedback" class="hidden mt-3 p-3 rounded-lg text-xs font-medium"></div>
+            </div>
+        </div>
+
+        <!-- Interaction 2: Gynecology Detective -->
+        <div class="glass-panel p-5 mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-pink-700 text-lg">👩‍⚕️ 临床侦探：异位妊娠破裂</h3>
+                <span class="text-[10px] bg-red-100 text-red-800 px-2 py-1 rounded font-bold">急腹症鉴别</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">
+                30岁女性突发右下腹撕裂样剧痛，阴道少量流血，妊娠试验阳性，伴随强烈的<b>“肛门坠胀感”</b>。
+            </p>
+
+            <div class="space-y-4">
+                <div>
+                    <div class="text-xs font-black text-slate-700 mb-2">Q1: 为什么该患者会出现如此强烈的“肛门坠胀感”？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerGyn(1, 'A', this)" class="gyn-q1 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            A. 胚胎在子宫内发育，直接压迫直肠壁。
+                        </button>
+                        <button onclick="answerGyn(1, 'B', this)" class="gyn-q1 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            B. 输卵管妊娠破裂，腹腔血液流入盆腔最低处——直肠子宫陷凹，刺激并压迫直肠。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="gyn-part2" class="hidden">
+                    <div class="text-xs font-black text-slate-700 mb-2">Q2: 为了确诊盆腔内是否有积血，最佳的穿刺部位是哪里？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerGyn(2, 'A', this)" class="gyn-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            A. 腹壁脐下正中穿刺。
+                        </button>
+                        <button onclick="answerGyn(2, 'B', this)" class="gyn-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            B. 经阴道后穹窿穿刺。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="gyn-part3" class="hidden">
+                    <div class="text-xs font-black text-slate-700 mb-2">Q3: 为什么穿刺抽出的必须是“暗红色不凝固血液”才有诊断价值？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerGyn(3, 'A', this)" class="gyn-q3 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            A. 证明抽到的是腹腔内积血，由于腹膜的去纤维蛋白作用，该处的陈旧积血不凝固。
+                        </button>
+                        <button onclick="answerGyn(3, 'B', this)" class="gyn-q3 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition click-target">
+                            B. 证明抽到的是主动脉流出的新鲜血，由于血流速度快而不易凝固。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="gyn-feedback" class="hidden p-3 rounded-xl text-xs font-medium leading-relaxed"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 3: Quiz ========== -->
+    <main id="view-quiz" class="page-view px-5 pt-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-black text-slate-800 flex items-center">
+                <span class="w-1.5 h-5 bg-pink-500 rounded-full mr-2"></span>生殖系统测评
+            </h2>
+            <div class="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs font-black shadow-inner">
+                得分 <span id="score-display" class="text-lg">0</span>/15
+            </div>
+        </div>
+        <div id="quiz-container" class="space-y-6"></div>
+    </main>
+
+    <!-- ========== BOTTOM SHEET (Node Detail) ========== -->
+    <div class="overlay" id="overlay" onclick="closeNodeDetail()"></div>
+    <div class="bottom-sheet" id="detail-sheet">
+        <div class="p-6">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div class="flex items-center mb-6">
+                <div id="modal-icon" class="text-4xl mr-4 bg-pink-50 w-16 h-16 flex items-center justify-center rounded-2xl"></div>
+                <div><h2 id="modal-title" class="text-2xl font-black text-slate-800"></h2></div>
+            </div>
+            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                <button onclick="switchModalTab('normal')" id="mtab-normal" class="detail-tab active flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">✅ 正常结构</button>
+                <button onclick="switchModalTab('aging')" id="mtab-aging" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">⚠️ 老年退化</button>
+                <button onclick="switchModalTab('care')" id="mtab-care" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">🛡️ 照护要点</button>
+            </div>
+            <div id="md-normal" class="modal-content-section"></div>
+            <div id="md-aging" class="modal-content-section hidden"></div>
+            <div id="md-care" class="modal-content-section hidden"></div>
+            <button onclick="closeNodeDetail()" class="mt-8 w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200 transition click-target">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <nav class="bottom-nav">
+        <div class="nav-item active click-target" onclick="switchNav('anatomy',this)"><span class="nav-icon mb-1">🩻</span><span>探索结构</span></div>
+        <div class="nav-item click-target" onclick="switchNav('care',this)"><span class="nav-icon mb-1">🎮</span><span>照护实操</span></div>
+        <div class="nav-item click-target" onclick="switchNav('quiz',this)"><span class="nav-icon mb-1">📝</span><span>答题测评</span></div>
+    </nav>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        /* === Navigation === */
+        function switchNav(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        /* === Anatomy Data === */
+        const anatomyData = [
+            {
+                icon: "🍒", title: "男性生殖腺与管道",
+                normal: "<b>1. 睾丸 (男性生殖腺)</b>：呈微扁的椭圆形，左右各一，位于阴囊内。表面被膜有<b>浆膜</b>(鞘膜脏层)和<b>白膜</b>(致密结缔组织)。白膜在后缘增厚形成睾丸纵隔，并将实质分为许多睾丸小叶。生精小管产生精子并排至小叶→精直小管→睾丸网→输出小管→附睾。<br><br><b>2. 附睾</b>：紧贴睾丸上端和后缘，分头、体、尾。储存精子并促进精子成熟。<br><br><b>3. 输精管</b>：长而壁厚，管腔细小。分<b>四部</b>：睾丸部、精索部、腹股沟管部、盆部。其中<span class='text-pink-600 font-bold'>精索部</span>位于睾丸上端至皮下环处，表浅易触及，是<span class='text-pink-600 font-bold'>输精管结扎的理想部位</span>。<br><br><b>4. 射精管</b>：由输精管壶腹下端与精囊腺排泄管汇合而成，开口于尿道前列腺部。<br><br><b>5. 阴囊</b>：皮肤和肉膜构成，能收缩以调节内部温度维持在34～36℃，提供精子生存环境。",
+                aging: "老年男性睾丸重量轻微减轻，生精作用逐步减退，性激素分泌下降，但生精功能在健康男性中可维持到高龄。<br><br>阴囊平滑肌和肉膜张力减退，阴囊皮肤松弛下垂。<br><br>附睾管上皮可能发生退行性变，输精管壁发生纤维化、变硬。",
+                care: "<b>胚胎发育考点</b>：胎儿期睾丸在腹后壁发育，出生前一个月经腹股沟管下降至阴囊内。若出生后睾丸未降入阴囊，称为<span class='text-red-500 font-bold'>隐睾</span>。由于腹腔内温度偏高，隐睾极易导致生精小管萎缩、造成不育甚至恶变成睾丸癌，需尽早手术。<br><br>对于老年长者，做翻身和体位摆放操作时需注意防止阴囊被衣服褶皱过度压迫或牵拉伤害。"
+            },
+            {
+                icon: "🌰", title: "男性尿道与前列腺",
+                normal: "<b>1. 男性尿道</b>：长16～22cm，兼有排尿和排精功能。具有<span class='text-pink-600 font-bold'>三个狭窄、三个扩大和两个弯曲</span>：<br>• <b>三狭窄</b>：尿道内口、尿道膜部（穿过尿生殖膈）、尿道外口（最窄）。<br>• <b>三扩大</b>：前列腺部、尿道球部、尿道舟状窝。<br>• <b>两弯曲</b>：<b>耻骨下弯</b>（耻骨联合下方，恒定固定）和<b>耻骨前弯</b>（耻骨联合前下方，阴茎下垂时形成，提起阴茎时可消除）。<br><br><b>2. 前列腺</b>：栗子形，包绕尿道根部。分底、体、尖。分五叶：前叶、中叶、后叶、左侧叶、右侧叶。后叶有前列腺沟，直肠指检可触及。<br><br><b>3. 其他附属腺</b>：精囊分泌精液的2/3，富含果糖；尿道球腺开口于尿道球部，起润滑和中和尿液作用。",
+                aging: "<b>前列腺增生 (BPH)</b> 是老年男性的极高发疾病。前列腺肥大（尤其是中叶和侧叶增生）会直接<span class='text-red-500 font-bold'>压迫尿道前列腺部</span>，导致排尿阻力大、尿线变细、排尿等待、进行性排尿困难、夜尿频多。当逼尿肌代偿失效或受凉、憋尿时，可发生<span class='text-red-500 font-bold'>急性尿潴留</span>。",
+                care: "<b>临床导尿护理要点</b>：<br>① 给男性患者导尿时，需将阴茎<b>提起与腹壁呈60度角</b>，目的是<span class='text-pink-600 font-bold'>消除耻骨前弯</span>，使尿道仅剩一个固定的耻骨下弯，便于导尿管插入。<br>② 导管穿过尿道外口、膜部、内口这三处狭窄时，会感到明显阻力。此时切忌暴力硬推，可嘱患者深呼吸放松，将导管稍旋转并缓慢推入。<br>③ 见尿液流出后，应再插入1～2cm。急性尿潴留患者膀胱高度膨胀，<b>首次放尿不可超过1000ml (临床通常建议分批放出，每次200-300ml)</b>，否则膀胱压力突降会导致黏膜急剧充血、大出血（血尿）甚至休克。"
+            },
+            {
+                icon: "🌸", title: "女性内生殖器：卵巢与输卵管",
+                normal: "<b>1. 卵巢 (女性生殖腺)</b>：扁椭圆形，位于骨盆侧壁髂内外动脉夹角处。具有产生卵细胞和分泌雌激素、孕酮的功能。固定装置包括：<b>卵巢悬韧带</b>(骨盆漏斗韧带，内有卵巢动静脉)和<b>卵巢固有韧带</b>(连接子宫角与卵巢下端)。<br><br><b>2. 输卵管</b>：输送卵细胞的管道，长约10～12cm。分为<span class='text-pink-600 font-bold'>四部</span>：<br>• <b>子宫部</b>：穿子宫壁内段。<br>• <b>输卵管峡</b>：短而狭窄，壁厚，是<span class='text-pink-600 font-bold'>输卵管结扎的理想部位</span>。<br>• <b>输卵管壶腹</b>：粗而弯曲，壁薄占全长2/3，是<span class='text-pink-600 font-bold'>卵子正常受精的部位</span>。<br>• <b>输卵管漏斗</b>：末端膨大呈漏斗状，有<b>输卵管伞</b>(覆盖卵巢，起『拾卵』作用)。",
+                aging: "女性在45～55岁左右步入更年期，卵巢功能开始衰退，卵泡耗竭并对促性腺激素失去反应。排卵停止，雌激素和孕激素水平极速骤降。<br><br>更年期后，卵巢萎缩、硬化纤维化。这会导致子宫萎缩、乳房萎缩、骨矿物质流失（骨质疏松）、血管舒缩功能障碍（潮热出汗）和心血管风险上升。",
+                care: "<b>绝经后骨质疏松护理</b>：由于雌激素缺乏导致成骨细胞活性降低而破骨细胞活性增强，绝经后妇女骨流失严重。护理中应鼓励摄入钙质与维生素D，做适度抗阻力运动，并注意跌倒预防。<br><br><b>输卵管积脓与妊娠</b>：若输卵管伞部或漏斗因炎症粘连闭锁，会导致不孕；若因炎症管腔部分狭窄堵塞，受精卵无法通过进入子宫，极易在输卵管滞留发育导致<span class='text-red-500 font-bold'>输卵管妊娠 (宫外孕)</span>。"
+            },
+            {
+                icon: "🤰", title: "子宫、阴道与外生殖器",
+                normal: "<b>1. 子宫</b>：倒置梨形，位于盆腔中央，膀胱与直肠之间。分底、体、颈三部。子宫颈与子宫体交界处约1cm处为<b>子宫峡</b>，妊娠期可延伸至7～11cm（剖宫产常在此切口）。子宫长轴与阴道长轴形成向前开放的钝角(>90°)，称为<b>前倾</b>；子宫体与颈之间形成向前开放的钝角(约170°)，称为<b>前屈</b>。固定装置主要有<b>四对韧带</b>：<br>• <b>子宫圆韧带</b>：维持子宫<b>前倾</b>。<br>• <b>骶子宫韧带</b>：拉子宫颈向后上，维持子宫<b>前屈</b>。<br>• <b>子宫阔韧带</b>：限制子宫向两侧移动。<br>• <b>子宫主韧带</b>：固定子宫颈，<span class='text-pink-600 font-bold'>防止子宫脱垂</span>。<br><br><b>2. 子宫内膜</b>：分功能层（周期脱落）和基底层（修复重建）。月经周期分：月经期(1-4天)、增生期(5-14天)、分泌期(15-28天)。<br><br><b>3. 阴道</b>：包绕子宫颈阴道部形成环状间隙，称<b>阴道穹</b>，分前、后、侧三部。其中<b>阴道穹后部</b>最深，紧邻腹膜腔最低点——<span class='text-pink-600 font-bold'>直肠子宫陷凹</span>。<br><br><b>4. 外生殖器与乳房</b>：阴道前庭有前庭大腺（炎症堵塞易成囊肿）。乳房由15-20个乳腺叶组成，排泄管为输乳管，在乳头处膨大为输乳管窦。",
+                aging: "<b>1. 子宫脱垂</b>：老年人由于子宫主韧带、盆底肌肉松弛退化，子宫沿阴道下降甚至脱出尿道外口之外。<br><br><b>2. 老年性阴道炎</b>：绝经后雌激素缺乏，阴道黏膜萎缩变薄，上皮糖原减少，阴道杆菌减少导致乳酸产生不足，阴道内pH值从酸性变为偏碱性，阴道局部抵抗力下降，易受细菌逆行侵袭感染。",
+                care: "<b>1. 临床穹窿穿刺考点</b>：输卵管宫外孕破裂大出血时，血液会积聚在女性盆腔最低处——<b>直肠子宫陷凹</b>(Douglas腔)，刺激直肠引起<b>“肛门坠胀感”</b>。临床上可通过<span class='text-pink-600 font-bold'>经阴道后穹窿穿刺</span>直接抽取积血（为去纤维蛋白的暗红色不凝固血）进行快速诊断。<br><br><b>2. 老年性阴道炎照护</b>：保持长者外阴清洁干燥，大小便后擦拭应<b>从前向后</b>（先尿道，后肛门），防止肛门细菌逆行污染阴道和尿道。不宜使用高浓度碱性肥皂水冲洗外阴，必要时按医嘱局部使用小剂量雌激素软膏。"
+            }
+        ];
+
+        /* === Modal Handling === */
+        function openNodeDetail(i) {
+            const d = anatomyData[i];
+            document.getElementById('modal-icon').innerText = d.icon;
+            document.getElementById('modal-title').innerText = d.title;
+            document.getElementById('md-normal').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.normal}</p>`;
+            document.getElementById('md-aging').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.aging}</p>`;
+            document.getElementById('md-care').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.care}</p>`;
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('detail-sheet').classList.add('open');
+            switchModalTab('normal');
+        }
+        function closeNodeDetail() {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('detail-sheet').classList.remove('open');
+        }
+        function switchModalTab(id) {
+            ['normal','aging','care'].forEach(t => {
+                document.getElementById('mtab-'+t).classList.remove('active');
+                document.getElementById('md-'+t).classList.add('hidden');
+            });
+            document.getElementById('mtab-'+id).classList.add('active');
+            document.getElementById('md-'+id).classList.remove('hidden');
+        }
+
+        /* === Game 1: Male Catheterization Game === */
+        let cathLevel = 0; // 0: external, 1: prepubic, 2: membranous, 3: subpubic, 4: internal, 5: bladder
+        const cathHeights = [0, 60, 150, 230, 300, 350]; // px height of catheter tube
+        const cathStatuses = [
+            "导尿管停留在【尿道外口】。请点推进继续。",
+            "管头卡在【耻骨前弯】处受阻！耻骨前弯是一个向下的凹弯，硬推会导致尿道壁损伤。请点击『将阴茎提起60°』消除此弯曲。",
+            "管头卡在【尿道膜部】处受阻！此处穿过尿生殖膈，是尿道最窄且阻力最大的第二处生理性狭窄。请选择『缓慢旋转管身并推入』。",
+            "管头正通过【耻骨下弯】（耻骨联合下方的固定凹弯）。此处弯曲固定无法消除，请稳步『推进导尿管』穿过它。",
+            "管头已穿过前列腺部，到达【尿道内口】。即将穿入膀胱，请最后推进一次！",
+            "🎉 导尿管成功穿入【膀胱】！见黄色透明尿液引流流出！"
+        ];
+
+        function updateCathUI() {
+            const cath = document.getElementById('cath-tube');
+            cath.style.height = cathHeights[cathLevel] + 'px';
+            document.getElementById('cath-status').innerText = cathStatuses[cathLevel];
+
+            // Reset buttons state
+            const push = document.getElementById('btn-cath-push');
+            const lift = document.getElementById('btn-cath-lift');
+            const rot = document.getElementById('btn-cath-rotate');
+
+            push.disabled = true; push.classList.add('opacity-50','cursor-not-allowed');
+            lift.disabled = true; lift.classList.add('opacity-50','cursor-not-allowed'); lift.classList.replace('bg-pink-600','bg-slate-200'); lift.classList.replace('text-white','text-slate-700');
+            rot.disabled = true; rot.classList.add('opacity-50','cursor-not-allowed'); rot.classList.replace('bg-pink-600','bg-slate-200'); rot.classList.replace('text-white','text-slate-700');
+
+            // Highlight current active point dot
+            for(let i=1; i<=5; i++) {
+                const dot = document.getElementById('up-' + ['external','prepubic','membranous','subpubic','internal'][i-1]);
+                if (i-1 === cathLevel) {
+                    dot.classList.replace('bg-slate-300','bg-pink-600');
+                    dot.classList.replace('border-slate-400','border-pink-800');
+                } else if (i-1 < cathLevel) {
+                    dot.classList.replace('bg-slate-300','bg-emerald-500');
+                    dot.classList.replace('border-slate-400','border-emerald-700');
+                }
+            }
+
+            if (cathLevel === 1) {
+                lift.disabled = false; lift.classList.remove('opacity-50','cursor-not-allowed'); lift.classList.replace('bg-slate-200','bg-pink-600'); lift.classList.replace('text-slate-700','text-white');
+            } else if (cathLevel === 2) {
+                rot.disabled = false; rot.classList.remove('opacity-50','cursor-not-allowed'); rot.classList.replace('bg-slate-200','bg-pink-600'); rot.classList.replace('text-slate-700','text-white');
+            } else if (cathLevel < 5) {
+                push.disabled = false; push.classList.remove('opacity-50','cursor-not-allowed');
+            } else {
+                // Done
+                document.getElementById('drain-block').classList.remove('hidden');
+            }
+        }
+
+        function pushCatheter() {
+            if (cathLevel === 1 || cathLevel === 2 || cathLevel >= 5) return;
+            cathLevel++;
+            updateCathUI();
+        }
+
+        function liftPenis() {
+            if (cathLevel !== 1) return;
+            cathLevel++;
+            updateCathUI();
+            document.getElementById('cath-status').innerHTML = "<b>[提拉动作成功]</b> 耻骨前弯已被拉直！导尿管穿过前弯，继续向下前行进入海绵体部。";
+        }
+
+        function rotateCatheter() {
+            if (cathLevel !== 2) return;
+            cathLevel++;
+            updateCathUI();
+            document.getElementById('cath-status').innerHTML = "<b>[旋转推入成功]</b> 缓慢旋转降低了膜部尿道括约肌张力！导尿管顺利穿过第二狭窄（膜部）。";
+        }
+
+        function handleDrainOption(opt) {
+            const fb = document.getElementById('drain-feedback');
+            fb.classList.remove('hidden');
+            if (opt === 'correct') {
+                fb.className = "mt-3 p-3 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                fb.innerHTML = "<b>✅ 正确！</b>对于膀胱高度膨胀的急性尿潴留患者，一次性排空尿液会导致腹腔压力突然崩溃，使膀胱内压迅速降为零，引起膀胱黏膜急剧充血、出血（即减压性血尿），甚至引发心脑血管休克。应当分批次慢速放出，首次放出200-300ml即夹闭，隔半小时再放。";
+            } else {
+                fb.className = "mt-3 p-3 rounded-lg text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                fb.innerHTML = "<b>❌ 警告！</b>绝对不能一次性全部引流排空！快速释放压力会导致膀胱突然塌陷，黏膜毛细血管剧烈膨胀破裂，产生严重血尿，老人可能会发生虚脱。请选择分批引流。";
+            }
+        }
+
+        /* === Game 2: Gynecology Detective === */
+        let gynProgress = 1;
+        function answerGyn(qIndex, choice, btnEl) {
+            const fb = document.getElementById('gyn-feedback');
+            fb.classList.remove('hidden');
+
+            if (qIndex === 1) {
+                if (choice === 'B') {
+                    btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 回答正确！</b>直肠子宫陷凹是女性腹膜腔的最低点。输卵管破裂的大量出血在重力作用下在这里堆积，压迫并刺激前方的直肠壁神经，使患者产生排便的『肛门坠胀感』。";
+                    document.getElementById('gyn-part2').classList.remove('hidden');
+                } else {
+                    btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 答错了。</b>30岁女性停经6周，子宫即使怀孕也只有拳头大，不可能直接压迫直肠壁。坠胀是盆腔最低点直肠子宫陷凹有积血积液刺激引起的。";
+                }
+            } else if (qIndex === 2) {
+                if (choice === 'B') {
+                    btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 回答正确！</b>阴道后穹窿上方仅隔着一层薄薄的阴道壁与直肠子宫陷凹相通。在此处穿刺路径最短、最安全，可以直接抽吸出积聚在陷凹里的盆腔血液。";
+                    document.getElementById('gyn-part3').classList.remove('hidden');
+                } else {
+                    btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 答错了。</b>腹壁穿刺会经过很多肠管，对积血的定位不准且容易穿孔肠道。直肠子宫陷凹紧贴阴道后穹窿，经阴道后穹窿穿刺才是妇科急腹症的经典诊法。";
+                }
+            } else if (qIndex === 3) {
+                if (choice === 'A') {
+                    btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>🎉 挑战成功！</b>腹膜具有去纤维蛋白作用，当血管破裂、血液溢出到腹腔中时，血液中的纤维蛋白原会被破坏，因而抽出物是『暗红色不凝固的血液』。如果抽出来的是快速凝固的鲜红血，很有可能是误穿了局部血管！这在妇科临床中具有决定性的诊断意义！";
+                } else {
+                    btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 答错了。</b>如果是血管内流出的新鲜血，由于富含纤维蛋白原，抽出后在试管中很快就会凝固。不凝固正是陈旧/腹腔游离积血的标志。";
+                }
+            }
+        }
+
+        /* === Quiz Data === */
+        const quizData = [
+            { q: "1. 关于输精管的描述，结扎的理想部位是？", options: ["睾丸部", "盆部", "腹股沟管部", "精索部"], answer: 3, explanation: "输精管精索部介于睾丸上端与腹股沟管皮下环之间，表浅易触及，位置恒定，是阻断精子输送、行输精管结扎术的理想部位。" },
+            { q: "2. 男性尿道的三处生理狭窄分别位于？", options: ["前列腺部、膜部、海绵体部", "尿道内口、尿道膜部、尿道外口", "尿道内口、尿道球部、尿道外口", "尿道外口、膜部、尿道舟状窝"], answer: 1, explanation: "男性尿道有三处狭窄：①尿道内口；②膜部（穿过尿生殖膈处，易受损伤）；③尿道外口（最狭窄）。" },
+            { q: "3. 男性导尿时，提起阴茎与腹壁呈60度角，可以消除哪个弯曲？", options: ["耻骨前弯", "耻骨下弯", "尿道膜部弯曲", "前列腺部弯曲"], answer: 0, explanation: "提起阴茎可以使耻骨前弯（位于耻骨联合前下方，凹向下的弯曲）拉直消除，使尿道仅保留一个固定的凹向上的耻骨下弯，便于插管。" },
+            { q: "4. 卵子正常受精的部位是？", options: ["输卵管峡", "输卵管壶腹", "输卵管子宫部", "输卵管漏斗"], answer: 1, explanation: "输卵管壶腹部管径粗、管壁薄，占输卵管全长2/3，是卵子与精子交会并完成受精的正常部位。" },
+            { q: "5. 输卵管结扎术的理想部位通常是？", options: ["输卵管子宫部", "输卵管峡", "输卵管壶腹", "输卵管漏斗"], answer: 1, explanation: "输卵管峡部短而直、管壁较厚、位置较表浅，是临床行输卵管结扎手术（避孕）的最适宜部位。" },
+            { q: "6. 子宫的固定装置中，防止子宫脱垂的主要韧带是？", options: ["子宫圆韧带", "子宫主韧带", "子宫阔韧带", "骶子宫韧带"], answer: 1, explanation: "子宫主韧带（又称横韧带）位于子宫颈侧方，附着于盆壁，是固定子宫颈、防止子宫向下脱垂入阴道的最主要支持结构。" },
+            { q: "7. 维持子宫前倾姿势的主要韧带是？", options: ["子宫主韧带", "子宫圆韧带", "骶子宫韧带", "子宫阔韧带"], answer: 1, explanation: "子宫圆韧带起自子宫角前下方，经腹股沟管止于大阴唇，其拉力使子宫底向前倾，是维持子宫前倾的主要结构。" },
+            { q: "8. 妇科临床上进行直肠子宫陷凹穿刺（Douglas腔穿刺），常经由哪里刺入？", options: ["阴道前穹窿", "阴道后穹窿", "腹前壁下部", "阴道侧穹窿"], answer: 1, explanation: "阴道后穹窿最深，其上方阴道壁与直肠子宫陷凹仅隔一层纤薄组织，在此穿刺可以直接进入腹膜腔最低点抽吸积血或积液。" },
+            { q: "9. 胚胎早期睾丸位于腹后壁，通常在胎儿出生前几个月降入阴囊？", options: ["出生前1个月左右", "胚胎第3个月", "胚胎第7个月", "出生后1年内"], answer: 0, explanation: "胚胎第7个月降至腹股沟管腹环，出生前1个月左右通过浅环降入阴囊。若未能降入，则成为隐睾。" },
+            { q: "10. 关于老年女性绝经后易发“老年性阴道炎”，其解剖生理原因是？", options: ["雌激素水平骤降，阴道黏膜变薄，内环境由酸性变碱性", "子宫位置由前倾变后倾", "阴道穹后部消失", "卵巢悬韧带松弛松脱"], answer: 0, explanation: "绝经后雌激素急剧减少，阴道黏膜萎缩、糖原减少，乳酸菌缺乏，pH值上升呈中性或碱性，导致局部抗菌屏障失效，易受细菌感染。" },
+            { q: "11. 急性尿潴留放尿过程中，每次引流不可过快过多，这是为了预防？", options: ["尿道括约肌痉挛", "膀胱黏膜急剧充血出血（血尿）和虚脱", "输尿管逆流感染", "前列腺再次肿大"], answer: 1, explanation: "膀胱高度膨胀时若排空太快，腹腔压力下降，反射性引起膀胱黏膜毛细血管剧烈扩张破裂充血，发生减压性血尿，且大量血液滞留盆腔可能引起血压下降、虚脱。" },
+            { q: "12. 构成精索的主要成分包括？", options: ["输卵管、卵巢动脉、静脉", "输精管、睾丸动脉、蔓状静脉丛", "射精管、前列腺、精囊", "阴囊、提睾肌、白膜"], answer: 1, explanation: "精索是从睾丸上端延伸至腹股沟管腹环的柔软条索状结构，主要由输精管、睾丸动脉、蔓状静脉丛（睾丸静脉）等组成。" },
+            { q: "13. 输卵管妊娠（宫外孕）破裂大出血，血液积聚在直肠子宫陷凹常引起什么伴随症状？", options: ["剧烈呕吐", "尿频尿急", "肛门坠胀感", "乳房胀痛"], answer: 2, explanation: "直肠子宫陷凹是女性盆腔最低处，出血在此积聚会直接刺激其后方的直肠壁壁内神经，引起排便反射感，即临床上的『肛门坠胀感』。" },
+            { q: "14. 卵巢的固定韧带中，内含有卵巢动、静脉血管的是？", options: ["卵巢固有韧带", "卵巢悬韧带（骨盆漏斗韧带）", "子宫阔韧带", "子宫主韧带"], answer: 1, explanation: "卵巢悬韧带是从骨盆缘延伸至卵巢上端的腹膜皱襞，内含卵巢动、静脉，是卵巢血供的主要通道。" },
+            { q: "15. 广义的会阴是指？", options: ["肛门与外生殖器之间的狭小区域", "封闭骨盆下口的所有软组织", "大阴唇与小阴唇之间的区域", "尿生殖膈"], answer: 1, explanation: "广义的会阴指封闭骨盆下口的所有软组织；狭义的会阴仅指肛门与外生殖器之间（对于产科分娩切开非常重要）的区域。" }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `<button class="quiz-option w-full text-left font-medium p-3 mt-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition" 
+                                onclick="handleQuizAnswer(${index}, ${optIndex}, this)">
+                                <span class="inline-block w-6 text-slate-400 font-bold">${String.fromCharCode(65 + optIndex)}.</span> ${opt}</button>`;
+            });
+            const qDiv = document.createElement('div');
+            qDiv.className = 'glass-panel p-5 relative overflow-hidden';
+            qDiv.innerHTML = `
+                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-pink-400 to-pink-600"></div>
+                <h3 class="font-black text-slate-800 text-[15px] leading-relaxed pl-2 mb-3">${item.q}</h3>
+                <div id="options-${index}">${optionsHtml}</div>
+                <div id="exp-${index}" class="hidden mt-4 bg-pink-50 border border-pink-200 text-pink-800 p-3 rounded-xl text-xs font-bold leading-relaxed text-justify">
+                    <span class="text-pink-600">💡 解析：</span>${item.explanation}
+                </div>
+            `;
+            quizContainer.appendChild(qDiv);
+        });
+
+        function handleQuizAnswer(qIndex, selectedOptIndex, btnEl) {
+            if (answeredQuestions.has(qIndex)) return;
+            answeredQuestions.add(qIndex);
+            const isCorrect = selectedOptIndex === quizData[qIndex].answer;
+            const optionsContainer = document.getElementById(`options-${qIndex}`);
+            const buttons = optionsContainer.querySelectorAll('.quiz-option');
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === quizData[qIndex].answer) {
+                    btn.classList.replace('text-slate-600','text-emerald-850');
+                    btn.classList.replace('border-slate-200','border-emerald-500');
+                    btn.classList.add('bg-emerald-50');
+                } else if (idx === selectedOptIndex && !isCorrect) {
+                    btn.classList.replace('text-slate-600','text-red-800');
+                    btn.classList.replace('border-slate-200','border-red-500');
+                    btn.classList.add('bg-red-50');
+                }
+            });
+            const expDiv = document.getElementById(`exp-${qIndex}`);
+            if (isCorrect) {
+                score++;
+                expDiv.innerHTML = `<span class="text-emerald-600 font-black text-[14px] mb-2 block">✅ 回答正确！</span>` + expDiv.innerHTML;
+            } else {
+                const correctLetter = String.fromCharCode(65 + quizData[qIndex].answer);
+                expDiv.innerHTML = `<span class="text-red-500 font-black text-[14px] mb-2 block">❌ 回答错误！正确答案是：${correctLetter}</span>` + expDiv.innerHTML;
+                expDiv.classList.replace('bg-pink-50','bg-red-50');
+                expDiv.classList.replace('border-pink-200','border-red-200');
+                expDiv.classList.replace('text-pink-800','text-red-900');
+            }
+            document.getElementById('score-display').innerText = score;
+            expDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
