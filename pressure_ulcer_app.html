@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>皮肤结构与压疮防护 | 老年生理与照护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #FFF1F2;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        .app-bg { background: linear-gradient(180deg, #FFE4E6 0%, #FFF1F2 100%); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px rgba(225, 29, 72, 0.05);
+            border-radius: 24px;
+        }
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1);
+            z-index: 100; max-height: 85vh; overflow-y: auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.4); opacity:0; pointer-events:none;
+            transition: opacity 0.3s ease; z-index:99;
+        }
+        .overlay.active { opacity:1; pointer-events:auto; }
+        .timeline-line {
+            position: absolute; width: 4px;
+            background: linear-gradient(to bottom, #FDA4AF, #E11D48);
+            left: 38px; top: 20px; bottom: 20px; z-index: 0;
+        }
+        .anatomy-node {
+            position: relative; z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .anatomy-node:active { transform: scale(0.95); }
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            border-top: 1px solid #fecdd3;
+            display: flex; justify-content: space-around;
+            padding: 10px 0; padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 90;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #9CA3AF; font-size: 11px; font-weight: 500;
+            transition: color 0.3s ease; cursor: pointer;
+        }
+        .nav-item.active { color: #E11D48; }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1); }
+        .nav-item.active .nav-icon { transform: translateY(-4px) scale(1.1); }
+        .page-view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .page-view.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .click-target { cursor: pointer; transition: all 0.2s; }
+        .click-target:active { transform: scale(0.95); }
+        .detail-tab.active { background-color: #E11D48; color: white; font-weight: bold; }
+    </style>
+</head>
+<body class="app-bg">
+
+    <!-- Top Header -->
+    <header class="pt-12 pb-6 px-6 bg-gradient-to-br from-[#E11D48] to-[#FB7185] rounded-b-[40px] shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black text-white tracking-tight">皮肤结构与压疮防护</h1>
+            <p class="text-rose-100 mt-2 text-sm font-medium">表皮真皮·压力剪切力·压疮分期照护：实操与应用</p>
+        </div>
+        <div class="absolute right-[-20px] top-6 text-white/10 text-7xl font-black italic">SKINPI</div>
+        <div class="absolute w-20 h-20 rounded-full bg-white/10 blur-xl top-0 left-10"></div>
+        <div class="absolute w-32 h-32 rounded-full bg-white/10 blur-2xl bottom-[-20px] right-[-20px]"></div>
+    </header>
+
+    <!-- ========== PAGE 1: Anatomy ========== -->
+    <main id="view-anatomy" class="page-view active px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-rose-600 rounded-full mr-2"></span>点击节点深度解析皮肤与压疮
+        </h2>
+        <div class="relative pl-2 pb-10">
+            <div class="timeline-line"></div>
+            <!-- Node 1: Skin Anatomy -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(0)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-rose-100 flex-shrink-0">🧴</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">皮肤解剖结构</h3>
+                    <p class="text-xs text-rose-600 font-bold mt-1 bg-rose-100 inline-block px-2 py-0.5 rounded-full">表皮五层更新·真皮乳头与网织·浅筋膜</p>
+                </div>
+            </div>
+            <!-- Node 2: Pressure Ulcer Etiology -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(1)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-rose-100 flex-shrink-0">⚖️</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">压疮发生的力学原因</h3>
+                    <p class="text-xs text-rose-600 font-bold mt-1 bg-rose-100 inline-block px-2 py-0.5 rounded-full">垂直压力·摩擦力·剪切力联合作用</p>
+                </div>
+            </div>
+            <!-- Node 3: Staging and Symptoms -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(2)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-rose-100 flex-shrink-0">🔎</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">压疮的临床分期与表现</h3>
+                    <p class="text-xs text-indigo-600 font-bold mt-1 bg-indigo-100 inline-block px-2 py-0.5 rounded-full">1期红润·2期水疱·3/4期溃疡坏死·不可分期</p>
+                </div>
+            </div>
+            <!-- Node 4: Staging Prevention -->
+            <div class="anatomy-node flex items-center click-target" onclick="openNodeDetail(3)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-rose-100 flex-shrink-0">🛡️</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">预防与好发部位</h3>
+                    <p class="text-xs text-emerald-600 font-bold mt-1 bg-emerald-100 inline-block px-2 py-0.5 rounded-full">骶尾部枕骨足跟·高危人群评估·体位翻身</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 2: Care Interactions ========== -->
+    <main id="view-care" class="page-view px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-rose-600 rounded-full mr-2"></span>临床技能与情境互动
+        </h2>
+
+        <!-- Interaction 1: Pressure Ulcer Site Matcher -->
+        <div class="glass-panel p-5 mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-rose-700 text-lg">🛏️ 模拟防护：卧位与好发部位匹配</h3>
+                <span class="text-[10px] bg-rose-100 text-rose-800 px-2 py-1 rounded font-bold">骨隆突点</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">老年长者由于皮下脂肪减少，骨隆突处极易受压形成压疮。请根据长者的卧位，匹配其最容易发生压力性损伤的部位！</p>
+
+            <div class="space-y-4">
+                <!-- Case 1: Supine -->
+                <div class="bg-white rounded-xl p-4 border border-rose-100">
+                    <span class="text-xs font-black text-slate-700 block mb-2">情境 1: 长者处于长期【仰卧位】。以下哪组部位最容易发生压疮？</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="handleSiteMatch('supine', 'wrong', this)" class="site-supine bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+                            耳廓、肩峰、外踝
+                        </button>
+                        <button onclick="handleSiteMatch('supine', 'correct', this)" class="site-supine bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+                            枕骨、骶尾部、足跟
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Case 2: Lateral -->
+                <div class="bg-white rounded-xl p-4 border border-rose-100">
+                    <span class="text-xs font-black text-slate-700 block mb-2">情境 2: 长者处于【侧卧位】。以下哪组部位最容易发生压疮？</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="handleSiteMatch('lateral', 'correct', this)" class="site-lateral bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+                            耳部、大转子、外踝
+                        </button>
+                        <button onclick="handleSiteMatch('lateral', 'wrong', this)" class="site-lateral bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+                            枕骨、骶尾部、足跟
+                        </button>
+                    </div>
+                </div>
+
+                <div id="site-feedback" class="hidden p-3 rounded-xl text-xs font-medium leading-relaxed"></div>
+            </div>
+        </div>
+
+        <!-- Interaction 2: Staging & Dressing Game -->
+        <div class="glass-panel p-5 mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-rose-700 text-lg">👩‍⚕️ 临床决策：压疮分期与照护对配</h3>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-1 rounded font-bold">治疗照护</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-3">当受压部位已经出现异常改变，护士应准确辨别病变分期，并执行正确的局部处理措施：</p>
+
+            <div class="space-y-4">
+                <!-- Case 1: Stage 2 Water Blister -->
+                <div>
+                    <div class="text-xs font-black text-slate-700 mb-2">情境 1: 长者足跟皮肤呈紫红色硬结，表皮变薄水肿，出现了一个直径达 1.5cm 的浆液性大水疱。你应当：</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="handleDressingMatch(1, 'A', this)" class="dress-q1 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            A. 局部大力揉按以改善局部血液循环，并用酒精对水疱进行消毒。
+                        </button>
+                        <button onclick="handleDressingMatch(1, 'B', this)" class="dress-q1 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            B. 此为压疮2期。应当在无菌操作下用注射器抽出泡内液体，保留表皮保护创面，并用敷料覆盖保护。
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Case 2: Eschar -->
+                <div id="dress-part2" class="hidden">
+                    <div class="text-xs font-black text-slate-700 mb-2">情境 2: 长者骶尾部创面基底部完全覆盖有黑色干枯焦痂和腐肉，无法看清创面深度。你应当如何判定与照护？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="handleDressingMatch(2, 'A', this)" class="dress-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            A. 判定为压疮3期，涂抹药膏等待其自行愈合。
+                        </button>
+                        <button onclick="handleDressingMatch(2, 'B', this)" class="dress-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            B. 此为不可分期。需配合医生进行外科清创，清除焦痂和腐肉以露出真正的组织创面后，再判定分期并合理换药。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dress-feedback" class="hidden p-3 rounded-xl text-xs font-medium leading-relaxed"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 3: Quiz ========== -->
+    <main id="view-quiz" class="page-view px-5 pt-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-black text-slate-800 flex items-center">
+                <span class="w-1.5 h-5 bg-rose-600 rounded-full mr-2"></span>压疮系统测评
+            </h2>
+            <div class="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-xs font-black shadow-inner">
+                得分 <span id="score-display" class="text-lg">0</span>/15
+            </div>
+        </div>
+        <div id="quiz-container" class="space-y-6"></div>
+    </main>
+
+    <!-- ========== BOTTOM SHEET (Node Detail) ========== -->
+    <div class="overlay" id="overlay" onclick="closeNodeDetail()"></div>
+    <div class="bottom-sheet" id="detail-sheet">
+        <div class="p-6">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div class="flex items-center mb-6">
+                <div id="modal-icon" class="text-4xl mr-4 bg-rose-50 w-16 h-16 flex items-center justify-center rounded-2xl"></div>
+                <div><h2 id="modal-title" class="text-2xl font-black text-slate-800"></h2></div>
+            </div>
+            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                <button onclick="switchModalTab('normal')" id="mtab-normal" class="detail-tab active flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">✅ 正常结构</button>
+                <button onclick="switchModalTab('aging')" id="mtab-aging" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">⚠️ 老年退化</button>
+                <button onclick="switchModalTab('care')" id="mtab-care" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">🛡️ 照护要点</button>
+            </div>
+            <div id="md-normal" class="modal-content-section"></div>
+            <div id="md-aging" class="modal-content-section hidden"></div>
+            <div id="md-care" class="modal-content-section hidden"></div>
+            <button onclick="closeNodeDetail()" class="mt-8 w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200 transition click-target">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <nav class="bottom-nav">
+        <div class="nav-item active click-target" onclick="switchNav('anatomy',this)"><span class="nav-icon mb-1">🩻</span><span>探索结构</span></div>
+        <div class="nav-item click-target" onclick="switchNav('care',this)"><span class="nav-icon mb-1">🎮</span><span>照护实操</span></div>
+        <div class="nav-item click-target" onclick="switchNav('quiz',this)"><span class="nav-icon mb-1">📝</span><span>答题测评</span></div>
+    </nav>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        /* === Navigation === */
+        function switchNav(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        /* === Anatomy Data === */
+        const anatomyData = [
+            {
+                icon: "🧴", title: "皮肤解剖结构",
+                normal: "<b>1. 表皮 (Epidermis)</b>：复层扁平上皮。无血管神经。由深向浅分为五层：基底层（具分裂能力）、棘层、颗粒层、透明层（仅见于手掌足底）、角质层（逐渐脱落形成皮屑）。更新周期为<b>3～4周</b>。散在非角质形成细胞包括：黑素细胞（产生黑素防紫外线）、朗格汉斯细胞（抗原提呈免疫）和梅克尔细胞（机械感觉）。<br><br><b>2. 真皮 (Dermis)</b>：<br>• <b>乳头层</b>：向表皮突起，内含丰富的毛细血管、游离神经末梢和触觉小体（感受精细触觉）。<br>• <b>网织层</b>：不规则致密结缔组织，内含环层小体（感受深部压觉和振动）、汗腺、皮脂腺和毛囊等。<br><br><b>3. 皮下组织</b>：又称<b>浅筋膜</b>。由疏松结缔组织和脂肪组成，连接皮肤与肌肉。",
+                aging: "老年人皮肤表皮和真皮变薄、弹性纤维退化断裂，导致皮肤出现皱纹、松弛；皮脂腺组织萎缩、分泌减少，导致皮肤极易干燥、粗糙；由于触觉小体和游离神经末梢减少，皮肤的触觉、温觉和痛觉感知能力全面衰退，外界微弱伤害不易察觉；皮肤免疫力和局部抵抗力全面降低。",
+                care: "<b>老年人感觉退化风险</b>：由于长者皮肤痛温觉退化，给老年人使用热水袋或做局部理疗时，<b>水温必须严格限制在50℃以内</b>，防止长者因感觉迟钝发生无感性的严重烫伤。<br><br><b>皮肤干燥照护</b>：禁止高频使用碱性过度去油的肥皂洗澡，以免洗掉天然皮脂层保护。洗澡后应大面积涂抹保湿润肤乳防止皲裂和细菌感染。"
+            },
+            {
+                icon: "⚖️", title: "压疮发生的力学原因",
+                normal: "压疮/压力性损伤主要是由物理力学因素持续作用导致的局部循环障碍，主要包括三种力：<br><br><b>1. 垂直压力</b>：引起压疮的最核心因素。当压力超过局部组织毛细血管压（约32mmHg），微循环血管塌陷关闭，组织缺血缺氧。<br><br><b>2. 摩擦力</b>：移动长者时，皮肤与床单表面摩擦损伤角质层。屏障受损使皮肤极易受水分和病原体侵袭。<br><br><b>3. 剪切力</b>：是最具破坏性的联合力。由<b>垂直压力与摩擦力</b>联合作用产生。例如长者半坐卧位下滑时，皮肤与床单产生摩擦保持静止，但深层骨骼和肌肉因重力下滑，导致表皮与深层肌肉层发生位移切断穿过肌肉供给皮肤的微细小血管，引发大面积深部坏死。",
+                aging: "老年人皮下脂肪萎缩变薄，骨隆突受压处缺乏脂肪和肌肉组织缓冲保护。同时老年长者自主活动受限或伴感觉障碍，无法感受缺血疼痛，反射性体位调整缺乏，受压阈值大幅度下降。",
+                care: "<b>摩擦力与剪切力防护</b>：<br>① 给长者翻身移动时，<b>严禁拖、拉、拽</b>，必须将长者抬起后挪动移动，防止摩擦力损伤皮肤。<br>② 协助长者取半坐卧位时，<b>床头抬高角度不得超过30°</b>，并在臀部下用软垫或弯曲膝部，以防止长者向下滑行，最大程度降低剪切力的形成机会。"
+            },
+            {
+                icon: "🔎", title: "压疮的临床分期与表现",
+                normal: "根据2016年NPUAP压力性损伤标准：<br>• <b>1期 (淤血红润期)</b>：皮肤完整，表现红、肿、热、痛。出现<b>压之不褪色红斑</b>，为可逆的血液循环初障。<br>• <b>2期 (炎性浸润期)</b>：表皮和/或部分真皮层受损坏死。表现为局部呈紫红色，皮下硬结。皮肤因水肿变薄，产生<b>浆液性水疱</b>，极易破溃。<br>• <b>3期 (浅度溃疡期)</b>：全层皮肤缺失。可见皮下脂肪外露，但肌肉、肌腱和骨骼未暴露。溃疡面有黄色渗液或感染脓液。<br>• <b>4期 (坏死溃疡期)</b>：全层组织缺失。坏死深达肌肉、肌腱和<b>骨骼暴露</b>。创面呈黑色焦痂，脓液恶臭，常合并窦道，可引起骨髓炎或脓毒败血症。<br>• <b>不可分期</b>：全层组织缺失，但创面完全被黄色腐肉或黑色坏死焦痂覆盖，无法看见基底以判断深度。<br>• <b>深部组织损伤</b>：皮肤完整，局部呈现持续不褪色的深红色、紫色改变或血水疱，触之疼痛有硬结。",
+                aging: "老年长者一旦发生3、4期压疮，由于全身营养不良和伤口再生细胞分化更新周期延长，创面常经久不愈，易并发多重感染危及长者生命。",
+                care: "<b>不同分期照护措施</b>：<br>① <b>1期</b>：主要解除压力，实施定时翻身。<b>禁止对红斑部位进行局部按摩揉捏</b>，否则会直接加重皮下毛细血管破裂和组织深层损伤。<br>② <b>2期小水疱</b>：直径小于0.5cm者应减少摩擦保护水疱让其自行吸收；<b>大水疱（>0.5cm）</b>应采用无菌注射器针头在低位抽吸液体，保留疱皮，涂抹药膏，覆盖无菌敷料保护。<br>③ <b>3、4期</b>：以换药清创控制感染为主。去除坏死焦痂，使用水胶体、藻酸盐等专业无菌敷料促进肉芽生长。"
+            },
+            {
+                icon: "🛡️", title: "预防与好发部位",
+                normal: "压疮的好发部位是<b>经常受压且缺乏脂肪肌肉保护的骨隆突处</b>：<br>• <b>仰卧位</b>：<b>骶尾部</b>（最易发）、枕骨外隆突、肩胛骨、肘部、足跟。<br>• <b>侧卧位</b>：<b>大转子</b>、耳廓、肩峰、肋部、髂嵴、膝关节外侧、外踝。<br>• <b>坐位</b>：<b>坐骨结节</b>。<br>• <b>俯卧位</b>：额部、肩峰、髂前上棘、髌骨、足尖。<br><br><b>高危评估</b>：长期卧床偏瘫、极度消瘦、使用医疗器械（如面罩、插管处）、发热多汗、大便失禁的卧床长者是绝对的高危人群。",
+                aging: "老年人皮肤天然水油保护减少。汗液、大小便失禁所致局部潮湿和化学刺激，易引起皮肤角质层浸渍松软，极大削弱皮肤物理抗压力。",
+                care: "<b>压疮的核心在预防 (六大法则)</b>：<br>① <b>定时翻身</b>：卧床长者通常每<b>2小时</b>翻身一次，轮椅坐姿长者每15-30分钟需微调重心。<br>② <b>保持干燥</b>：大小便后及时擦洗，床单保持平整、清洁、无渣屑。<br>③ <b>营养补充</b>：高热量、高蛋白（瘦肉乳蛋）、高维生素饮食，纠正营养不良。<br>④ <b>支撑面</b>：合理使用减压气垫床，保护骨突处。<br>⑤ <b>正确翻身手法</b>：利用翻身垫，完全将长者抬起后平移翻身，避免拖拽拉动损伤皮肤。"
+            }
+        ];
+
+        /* === Game 1: Site Matcher === */
+        let siteScores = { supine: false, lateral: false };
+        function handleSiteMatch(pos, val, btnEl) {
+            const fb = document.getElementById('site-feedback');
+            fb.classList.remove('hidden');
+
+            document.querySelectorAll(`.site-${pos}`).forEach(b => {
+                b.className = `site-${pos} bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition`;
+            });
+
+            if (val === 'correct') {
+                btnEl.className = `site-${pos} bg-emerald-50 border border-emerald-500 text-emerald-700 py-2 rounded-lg text-xs font-bold transition`;
+                siteScores[pos] = true;
+                
+                if (pos === 'supine') {
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 仰卧位匹配正确！</b>长期仰卧时，重力使后脑勺（枕骨）、屁股骨（骶尾部）和后脚跟（足跟）直接压迫在床铺上，最容易在此发生压力性损伤。";
+                } else {
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 侧卧位匹配正确！</b>侧卧时，身体与床接触面积变小，压强变大。耳朵（耳部）、侧大腿骨（大转子）和脚踝外侧（外踝）成为首要受压隆突点。";
+                }
+
+                if (siteScores.supine && siteScores.lateral) {
+                    setTimeout(() => {
+                        fb.className = "mt-3 p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-300";
+                        fb.innerHTML = "<b>🎉 卧位匹配挑战成功！</b>临床照护时应使用小软垫或翻身垫将这些突出受压点架空，是预防压疮的最简方法！";
+                    }, 1500);
+                }
+            } else {
+                btnEl.className = `site-${pos} bg-red-50 border border-red-500 text-red-700 py-2 rounded-lg text-xs font-bold transition`;
+                fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-850 border border-red-200";
+                if (pos === 'supine') {
+                    fb.innerHTML = "<b>❌ 匹配错误。</b>耳廓、大转子和外踝是在侧卧位时受压的部位。仰卧位长者这几个点是不接触床铺的。";
+                } else {
+                    fb.innerHTML = "<b>❌ 匹配错误。</b>后脑（枕骨）和骶尾部是在正躺（仰卧位）时受压的部位，侧躺时不是首要受压骨突点。";
+                }
+            }
+        }
+
+        /* === Game 2: Staging & Dressing === */
+        function handleDressingMatch(qIndex, choice, btnEl) {
+            const fb = document.getElementById('dress-feedback');
+            fb.classList.remove('hidden');
+
+            if (qIndex === 1) {
+                if (choice === 'B') {
+                    btnEl.className = "dress-q1 bg-emerald-50 border border-emerald-500 text-emerald-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 处理正确！</b>2期炎性浸润期出现的直径大于0.5cm大水疱，若直接按压或任其摩擦极易导致疱皮大面积撕裂污染。应使用无菌针头在低位刺破抽液，保留完整疱皮阻隔外界感染，最后用无菌贴覆盖保护。";
+                    document.getElementById('dress-part2').classList.remove('hidden');
+                } else {
+                    btnEl.className = "dress-q1 bg-red-50 border border-red-500 text-red-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 处理错误！</b>压疮已经形成皮肤损伤，绝对禁忌局部强力推拿按摩，这会直接加重深层毛细血管的破裂坏死！";
+                }
+            } else if (qIndex === 2) {
+                if (choice === 'B') {
+                    btnEl.className = "dress-q2 bg-emerald-50 border border-emerald-500 text-emerald-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>🎉 挑战成功！</b>当伤口被黑色干焦痂或腐肉覆盖时，无法通过肉眼评估组织受损的实际深度，此为典型的“不可分期”。必须经过清创把黑色焦痂除去，露出红色的肉芽或深层组织，才能进行分期判断并针对性换药照护。";
+                } else {
+                    btnEl.className = "dress-q2 bg-red-50 border border-red-500 text-red-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 答错了。</b>覆盖黑色焦痂无法评估深度时，不能主观判定为3期。因为焦痂深部可能已经烂到骨头（4期），这叫“不可分期”，必须先行清创去除坏死组织再重新评估。";
+                }
+            }
+        }
+
+        /* === Quiz Data === */
+        const quizData = [
+            { q: "1. 皮肤表皮层中，唯一具有分裂增殖分化能力的细胞层是？", options: ["角质层", "颗粒层", "基底层", "棘层"], answer: 2, explanation: "基底层位于表皮最深面，由一层矮柱状细胞组成，具有强大的分裂增殖能力，不断产生新细胞向表层推移。" },
+            { q: "2. 人体表皮角质形成细胞增殖、向上移动、角化并脱落的整个更新周期大约是？", options: ["1～2天", "10天左右", "3～4周", "6个月"], answer: 2, explanation: "细胞从表皮基底层分裂增殖，逐渐移向角质层并脱落，整个更新周期通常为3～4周（约21~28天）。" },
+            { q: "3. 散在于表皮基底细胞之间，能产生黑色素以阻挡紫外线对深层组织伤害的细胞是？", options: ["朗格汉斯细胞", "梅克尔细胞", "黑素细胞", "角质形成细胞"], answer: 2, explanation: "黑素细胞散在于基底细胞之间，合成并分泌黑素颗粒，能吸收和防紫外线对深层细胞的伤害。" },
+            { q: "4. 真皮分为乳头层和网织层。下列关于乳头层的说法，正确的是？", options: ["为规则致密结缔组织", "内含汗腺和毛囊", "内含丰富的毛细血管、游离神经末梢和触觉小体", "位于真皮的网织层深面"], answer: 2, explanation: "乳头层位于真皮表层向表皮突出，内含丰富的毛细血管网、游离神经末梢和触觉小体（负责精细触觉）。网织层在深部，含环层小体、腺体等。" },
+            { q: "5. 皮肤的皮下组织在解剖学中又常被称为？", options: ["表皮深层", "真皮网织层", "浅筋膜", "深筋膜"], answer: 2, explanation: "皮下组织连接皮肤与深部的肌肉，由疏松结缔组织和脂肪组成，在解剖学上常被称为浅筋膜。" },
+            { q: "6. 引起局部组织持续受压，从而导致压力性损伤（压疮）发生的物理力学因素不包括？", options: ["垂直压力", "剪切力", "摩擦力", "拉伸力"], answer: 3, explanation: "造成压力性损伤的力学因素主要是垂直压力、摩擦力、剪切力三者单独或联合作用，拉伸力不是压疮的病因。" },
+            { q: "7. 临床养老护理中极具破坏性的“剪切力”，主要是由哪两种物理力学因素联合产生的？", options: ["压力与重力", "摩擦力与垂直压力", "剪切力和压力", "重力与自重"], answer: 1, explanation: "剪切力是由于垂直压力和摩擦力联合作用于局部产生的切线力。比如半坐卧位长者下滑时，皮肤与床面摩擦产生阻力，骨骼肌肉因重力下滑，导致血管扭曲撕裂。" },
+            { q: "8. 老年长者容易发生压疮的内在生理老化因素，不包括下列哪项？", options: ["皮下脂肪萎缩变薄", "感觉迟钝，痛温觉保护性反射减弱", "皮肤干燥，皮脂腺功能萎缩", "经常被迫更换卧位"], answer: 3, explanation: "经常被迫或协助更换卧位是预防压疮的极佳措施。而皮下脂肪萎缩（缺少保护）、痛温觉丧失（不知受压疼痛）、干燥粗糙（屏障脆弱）才是高危内在生理老化原因。" },
+            { q: "9. 皮肤完整性未被破坏，但受压部位出现压之不褪色的局部红斑，此为何期压疮？", options: ["1期 (淤血红润期)", "2期 (炎性浸润期)", "3期 (浅度溃疡期)", "不可分期"], answer: 0, explanation: "1期淤血红润期特点是皮肤完整，受压骨隆突处出现暂时性循环障碍，表现为压之不褪色的红斑。" },
+            { q: "10. 压疮2期（炎性浸润期）最典型的临床解剖及病理表现是？", options: ["皮肤破损，深达骨骼", "皮肤完整无损", "受压部位紫红硬结，水肿并形成浆液性水疱", "创面基底部覆盖有黑色焦痂"], answer: 2, explanation: "2期炎性浸润期累及表皮和真皮层，皮肤变薄呈紫红色硬结，由于渗出增多在表皮下形成浆液性水疱，疼痛剧烈。" },
+            { q: "11. 针对受压局部直径大于0.5cm的大水疱，正确的局部临床照护手法是？", options: ["直接强力按揉让其破裂", "用无菌注射器在低位抽吸液体，保留疱皮并覆盖无菌敷料", "用碘酒彻底消毒，剪掉所有水疱疱皮", "不做任何处理，任其自然摩擦破裂"], answer: 1, explanation: "直径大于0.5cm的大水疱，应在无菌操作下用注射器在疱基底部抽吸液体，保留疱皮覆盖创面以降低二次感染风险，再覆盖贴膜保护。" },
+            { q: "12. 全层皮肤缺失，可见皮下脂肪但肌肉、肌腱和骨骼尚未暴露，属于压疮几期？", options: ["2期 (炎性浸润期)", "3期 (浅度溃疡期)", "4期 (坏死溃疡期)", "深部组织损伤期"], answer: 1, explanation: "3期浅度溃疡期表现为全层皮肤缺失，创面已深达皮下组织并可见皮下脂肪，但深层的肌肉、肌腱和骨骼未暴露。" },
+            { q: "13. 当伤口基底部完全被黄色腐肉或黑色坏死痂皮覆盖，使检查者无法评估实际深度时，应划分为？", options: ["3期 (浅度溃疡期)", "4期 (坏死溃疡期)", "不可分期压力性损伤", "深部组织损伤"], answer: 2, explanation: "当坏死组织覆盖创面基底部，导致无法直观肉眼测量受损深度时，根据NPUAP标准属于不可分期，须彻底清创清除焦痂后才能重新评估分期。" },
+            { q: "14. 协助卧床长者取仰卧位时，最容易发生压力性损伤的骨隆突处是？", options: ["耳部", "骶尾部", "大转子", "外踝"], answer: 1, explanation: "仰卧位时，人体的骶尾部（尾骨处）由于承重大、皮肤较薄且缺乏脂肪肌肉保护，是临床压疮最核心的高发部位。" },
+            { q: "15. 协助偏瘫卧床长者翻身移动时，为防止摩擦力损伤角质层，以下操作正确的是？", options: ["一人在床尾用力拖拽长者双脚", "拉扯床单对长者进行快速拖动", "将长者身体完全抬起平移，避免拖拉拽动作", "仅在翻身时按摩骨突部位使其变红"], answer: 2, explanation: "为防止摩擦力和剪切力损伤皮肤，协助长者翻身和移动时必须使用翻身贴或两名照护员协力，将长者身体完全托起后再进行平移或侧翻，严禁在床面上直接拖、拉、推、拽长者。" }
+        ];
+
+        let score = 0;
+        let answered = Array(quizData.length).fill(false);
+
+        function buildQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = "";
+            quizData.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "glass-panel p-5";
+                
+                let optionsHTML = "";
+                item.options.forEach((opt, optIdx) => {
+                    optionsHTML += `
+                        <button onclick="checkAnswer(${idx}, ${optIdx}, this)" class="quiz-opt-${idx} w-full text-left bg-white border border-slate-200 p-3 rounded-xl text-xs font-bold text-slate-600 transition click-target mb-2 flex justify-between items-center">
+                            <span>${['A','B','C','D'][optIdx]}. ${opt}</span>
+                            <span class="feedback-icon text-sm"></span>
+                        </button>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <h3 class="font-black text-slate-800 text-sm mb-4 leading-relaxed">${item.q}</h3>
+                    <div class="options-group">${optionsHTML}</div>
+                    <div id="quiz-fb-${idx}" class="hidden mt-3 p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px] font-medium leading-relaxed">
+                        <b>正确答案：${['A','B','C','D'][item.answer]}</b><br>
+                        ${item.explanation}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qIdx, optIdx, btnEl) {
+            if (answered[qIdx]) return;
+            answered[qIdx] = true;
+
+            const isCorrect = (optIdx === quizData[qIdx].answer);
+            const buttons = document.querySelectorAll(`.quiz-opt-${qIdx}`);
+            
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.add('opacity-70');
+                if (idx === quizData[qIdx].answer) {
+                    btn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    btn.querySelector('.feedback-icon').innerText = "✅";
+                }
+            });
+
+            if (!isCorrect) {
+                btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                btnEl.querySelector('.feedback-icon').innerText = "❌";
+            } else {
+                score++;
+                document.getElementById('score-display').innerText = score;
+            }
+
+            document.getElementById(`quiz-fb-${qIdx}`).classList.remove('hidden');
+        }
+
+        /* === Init === */
+        window.onload = function() {
+            buildQuiz();
+        }
+    </script>
+</body>
+</html>

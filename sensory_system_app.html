@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>感官探测与照护 | 老年生理与照护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F0FDF4;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        .app-bg { background: linear-gradient(180deg, #DCFCE7 0%, #F0FDF4 100%); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px rgba(22, 163, 74, 0.05);
+            border-radius: 24px;
+        }
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1);
+            z-index: 100; max-height: 85vh; overflow-y: auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.4); opacity:0; pointer-events:none;
+            transition: opacity 0.3s ease; z-index:99;
+        }
+        .overlay.active { opacity:1; pointer-events:auto; }
+        .timeline-line {
+            position: absolute; width: 4px;
+            background: linear-gradient(to bottom, #86EFAC, #16A34A);
+            left: 38px; top: 20px; bottom: 20px; z-index: 0;
+        }
+        .anatomy-node {
+            position: relative; z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .anatomy-node:active { transform: scale(0.95); }
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            border-top: 1px solid #bbf7d0;
+            display: flex; justify-content: space-around;
+            padding: 10px 0; padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 90;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #9CA3AF; font-size: 11px; font-weight: 500;
+            transition: color 0.3s ease; cursor: pointer;
+        }
+        .nav-item.active { color: #16A34A; }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1); }
+        .nav-item.active .nav-icon { transform: translateY(-4px) scale(1.1); }
+        .page-view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .page-view.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .click-target { cursor: pointer; transition: all 0.2s; }
+        .click-target:active { transform: scale(0.95); }
+        .detail-tab.active { background-color: #16A34A; color: white; font-weight: bold; }
+    </style>
+</head>
+<body class="app-bg">
+
+    <!-- Top Header -->
+    <header class="pt-12 pb-6 px-6 bg-gradient-to-br from-[#16A34A] to-[#4ADE80] rounded-b-[40px] shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black text-white tracking-tight">感受器与感官</h1>
+            <p class="text-emerald-100 mt-2 text-sm font-medium">视器眼球·前庭听器·感官照护：解剖与临床护理</p>
+        </div>
+        <div class="absolute right-[-20px] top-6 text-white/10 text-7xl font-black italic">SENSORY</div>
+        <div class="absolute w-20 h-20 rounded-full bg-white/10 blur-xl top-0 left-10"></div>
+        <div class="absolute w-32 h-32 rounded-full bg-white/10 blur-2xl bottom-[-20px] right-[-20px]"></div>
+    </header>
+
+    <!-- ========== PAGE 1: Anatomy ========== -->
+    <main id="view-anatomy" class="page-view active px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-emerald-600 rounded-full mr-2"></span>点击节点深度解析感觉器官
+        </h2>
+        <div class="relative pl-2 pb-10">
+            <div class="timeline-line"></div>
+            <!-- Node 1: Eye Wall -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(0)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-emerald-100 flex-shrink-0">👁️</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">眼球壁结构 (Eye Wall)</h3>
+                    <p class="text-xs text-emerald-600 font-bold mt-1 bg-emerald-100 inline-block px-2 py-0.5 rounded-full">角膜巩膜·瞳孔虹膜·视网膜黄斑</p>
+                </div>
+            </div>
+            <!-- Node 2: Eye Refractive Media -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(1)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-emerald-100 flex-shrink-0">👓</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">眼球内容物与眼副器</h3>
+                    <p class="text-xs text-emerald-600 font-bold mt-1 bg-emerald-100 inline-block px-2 py-0.5 rounded-full">房水循环青光眼·老花眼与白内障·泪道与眼肌</p>
+                </div>
+            </div>
+            <!-- Node 3: Ear Structure -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(2)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-emerald-100 flex-shrink-0">👂</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">外耳与中耳 (Outer & Middle Ear)</h3>
+                    <p class="text-xs text-indigo-600 font-bold mt-1 bg-indigo-100 inline-block px-2 py-0.5 rounded-full">鼓膜与听小骨链·咽鼓管小儿中耳炎·耵聍腺</p>
+                </div>
+            </div>
+            <!-- Node 4: Inner Ear -->
+            <div class="anatomy-node flex items-center click-target" onclick="openNodeDetail(3)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-emerald-100 flex-shrink-0">🐚</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">内耳与位听感受器</h3>
+                    <p class="text-xs text-emerald-600 font-bold mt-1 bg-emerald-100 inline-block px-2 py-0.5 rounded-full">骨迷路膜迷路·平衡壶腹嵴·耳蜗螺旋器听觉</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 2: Care Interactions ========== -->
+    <main id="view-care" class="page-view px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-emerald-600 rounded-full mr-2"></span>临床技能与情境互动
+        </h2>
+
+        <!-- Interaction 1: Ear Pull Game -->
+        <div class="glass-panel p-5 mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-emerald-700 text-lg">👂 检查实操：耳镜及外耳道拉耳廓模拟</h3>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-1 rounded font-bold">解剖挑战</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">外耳道生理上呈“S”形弯曲。进行耳镜检查或滴耳药时，必须正确牵拉耳廓以拉直外耳道。请为不同年龄的患者选择正确的牵拉方式！</p>
+
+            <div class="space-y-4">
+                <!-- Case 1: Adult -->
+                <div class="bg-white rounded-xl p-4 border border-emerald-100">
+                    <span class="text-xs font-black text-slate-700 block mb-2">情境 1: 患者为 45岁 成年男性。你应该向哪个方向牵拉耳廓？</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="handleEarPull('adult', 'wrong', this)" class="ear-adult bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+                            向后下方牵拉
+                        </button>
+                        <button onclick="handleEarPull('adult', 'correct', this)" class="ear-adult bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+                            向后上方牵拉
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Case 2: Infant -->
+                <div class="bg-white rounded-xl p-4 border border-emerald-100">
+                    <span class="text-xs font-black text-slate-700 block mb-2">情境 2: 患者为 2岁 幼儿。你应该向哪个方向牵拉耳廓？</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="handleEarPull('infant', 'correct', this)" class="ear-infant bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+                            向后下方牵拉
+                        </button>
+                        <button onclick="handleEarPull('infant', 'wrong', this)" class="ear-infant bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+                            向后上方牵拉
+                        </button>
+                    </div>
+                </div>
+
+                <div id="ear-feedback" class="hidden p-3 rounded-xl text-xs font-medium leading-relaxed"></div>
+            </div>
+        </div>
+
+        <!-- Interaction 2: Otitis Media Detective -->
+        <div class="glass-panel p-5 mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-emerald-700 text-lg">👶 临床小侦探：小儿急性中耳炎</h3>
+                <span class="text-[10px] bg-red-100 text-red-800 px-2 py-1 rounded font-bold">小儿解剖特点</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-3">5岁小儿因咽喉肿痛、感冒，2天后突发耳痛、高热，耳镜下见鼓膜红肿饱满，确诊为<b>急性化脓性中耳炎</b>。</p>
+
+            <div class="space-y-4">
+                <div>
+                    <div class="text-xs font-black text-slate-700 mb-2">Q1: 为什么小儿呼吸道感染（感冒、咽炎）极易逆行引起中耳炎？这与哪条通道的结构特点关系最密切？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerOtitis(1, 'A', this)" class="oti-q1 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            A. 外耳道太短，细菌直接从外界进入中耳。
+                        </button>
+                        <button onclick="answerOtitis(1, 'B', this)" class="oti-q1 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            B. 咽鼓管连接咽部与鼓室。小儿的咽鼓管相较于成人而言具有“短、宽、直、平”的特点，咽部病原体极易借此逆行入中耳。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="oti-part2" class="hidden">
+                    <div class="text-xs font-black text-slate-700 mb-2">Q2: 如果中耳炎引起鼓膜积脓甚至破裂，患者最先丧失或减弱的是声波的哪种传导形式？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerOtitis(2, 'A', this)" class="oti-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            A. 骨传导（声波通过颅骨振动传入内耳）
+                        </button>
+                        <button onclick="answerOtitis(2, 'B', this)" class="oti-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            B. 空气传导（声波经外耳道、鼓膜和听小骨链传入内耳）
+                        </button>
+                    </div>
+                </div>
+
+                <div id="oti-feedback" class="hidden p-3 rounded-xl text-xs font-medium leading-relaxed"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 3: Quiz ========== -->
+    <main id="view-quiz" class="page-view px-5 pt-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-black text-slate-800 flex items-center">
+                <span class="w-1.5 h-5 bg-emerald-600 rounded-full mr-2"></span>感受器系统测评
+            </h2>
+            <div class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-black shadow-inner">
+                得分 <span id="score-display" class="text-lg">0</span>/15
+            </div>
+        </div>
+        <div id="quiz-container" class="space-y-6"></div>
+    </main>
+
+    <!-- ========== BOTTOM SHEET (Node Detail) ========== -->
+    <div class="overlay" id="overlay" onclick="closeNodeDetail()"></div>
+    <div class="bottom-sheet" id="detail-sheet">
+        <div class="p-6">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div class="flex items-center mb-6">
+                <div id="modal-icon" class="text-4xl mr-4 bg-emerald-50 w-16 h-16 flex items-center justify-center rounded-2xl"></div>
+                <div><h2 id="modal-title" class="text-2xl font-black text-slate-800"></h2></div>
+            </div>
+            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                <button onclick="switchModalTab('normal')" id="mtab-normal" class="detail-tab active flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">✅ 正常结构</button>
+                <button onclick="switchModalTab('aging')" id="mtab-aging" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">⚠️ 老年退化</button>
+                <button onclick="switchModalTab('care')" id="mtab-care" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">🛡️ 照护要点</button>
+            </div>
+            <div id="md-normal" class="modal-content-section"></div>
+            <div id="md-aging" class="modal-content-section hidden"></div>
+            <div id="md-care" class="modal-content-section hidden"></div>
+            <button onclick="closeNodeDetail()" class="mt-8 w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200 transition click-target">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <nav class="bottom-nav">
+        <div class="nav-item active click-target" onclick="switchNav('anatomy',this)"><span class="nav-icon mb-1">🩻</span><span>探索结构</span></div>
+        <div class="nav-item click-target" onclick="switchNav('care',this)"><span class="nav-icon mb-1">🎮</span><span>照护实操</span></div>
+        <div class="nav-item click-target" onclick="switchNav('quiz',this)"><span class="nav-icon mb-1">📝</span><span>答题测评</span></div>
+    </nav>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        /* === Navigation === */
+        function switchNav(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        /* === Anatomy Data === */
+        const anatomyData = [
+            {
+                icon: "👁️", title: "眼球壁结构 (Eye Wall)",
+                normal: "<b>1. 外膜 (纤维膜)</b>：前1/6为角膜（无色透明无血管，感觉神经末梢极其丰富，具屈光作用）；后5/6为巩膜（乳白色致密结缔组织，维持眼球外形，保护内部结构）。角膜与巩膜交界处深部有巩膜静脉窦，是房水回流静脉通道。<br><br><b>2. 中膜 (血管膜)</b>：由前向后为：<br>• <b>虹膜</b>：瞳孔位于中央，内含瞳孔括约肌（副交感支配缩瞳）和开大肌（交感支配扩瞳）。<br>• <b>睫状体</b>：睫状肌收缩可调节晶状体曲度；其上皮细胞分泌<b>房水</b>。<br>• <b>脉络膜</b>：中膜后2/3，富含血管和黑色素，起营养眼球、阻断杂散光线作用。<br><br><b>3. 内膜 (视网膜)</b>：分外层色素上皮部和内层神经部（含有感光细胞）。黄斑中央凹是视觉最敏锐的区域，视神经乳头（视神经盘）无感光细胞，是生理性盲点。",
+                aging: "角膜周围脂质沉着形成老年环；虹膜平滑肌退化，瞳孔对光反射变慢，夜间视力下降；视网膜黄斑区发生变性导致视物变形和视力大幅度衰退。",
+                care: "<b>角膜无血管考点</b>：角膜不含血管，靠房水及泪液渗透营养。因此角膜移植术后不易发生排斥反应。<br><br><b>老年性眼病照护</b>：由于瞳孔调节变弱和老年性黄斑病变，老年长者居室内的光线必须充足且避免反光刺眼。长者上下台阶或进入暗室时应给予搀扶，防止发生视觉盲区导致跌倒。"
+            },
+            {
+                icon: "👓", title: "眼球内容物与眼副器",
+                normal: "<b>1. 屈光装置 (眼内容物)</b>：<br>• <b>房水</b>：充盈于前、后房，折光并营养角膜及晶状体。<br>• <b>晶状体</b>：无血管神经的弹性双凸透镜。靠睫状小带固定于睫状体上。<br>• <b>玻璃体</b>：无色透明胶状物，维持眼球压力及支撑视网膜。<br><br><b>2. 眼副器</b>：<br>• <b>眼睑与结膜</b>：眼睑分5层，含睑板腺；结膜包括睑结膜、球结膜及结膜穹窿。<br>• <b>泪器</b>：泪腺分泌泪液流经结膜囊，经泪点➔泪小管➔泪囊➔鼻泪管，最后注入<b>下鼻道</b>。<br>• <b>眼球外肌</b>：包括4条直肌（上直、下直、内直、外直）和2条斜肌（上斜、下斜），控制眼球向各个方向运动。外直肌瘫痪（CN VI受损）会导致内斜视（无法外展）。",
+                aging: "• <b>老花眼</b>：随年龄增长，晶状体脱水硬化、厚度增加，且睫状肌调节力下降，导致看近物时无法聚焦，出现老视。<br>• <b>白内障</b>：晶状体蛋白质变性发生混浊，阻碍光线进入眼球。<br>• <b>青光眼</b>：房水生成与重吸收受阻，眼压急剧升高，压迫视神经导致视野缩小甚至失明。",
+                care: "<b>白内障与老花眼区别</b>：老花眼是弹性下降的调节障碍，白内障是晶状体透明度下降的物理混浊。<br><br><b>青光眼照护</b>：青光眼患者应避免暴饮暴食，情绪波动及暗室停留过久（暗室中瞳孔散大压迫前房角，加重房水回流受阻）。"
+            },
+            {
+                icon: "👂", title: "外耳与中耳 (Outer & Middle Ear)",
+                normal: "<b>1. 外耳</b>：耳郭、外耳道（S形弯曲，外1/3软骨部，内2/3骨部，含耵聍腺分泌耵聍）和鼓膜（半透明漏斗状，紧张部前下方有反光的光锥，功能是接收声波振动）。<br><br><b>2. 中耳</b>：由鼓室、咽鼓管、乳突窦和乳突小房组成。<br>• <b>鼓室</b>：含3块听小骨（锤骨、砧骨、镫骨）构成的听小骨链，将声波机械振动增强并传入内耳。<br>• <b>咽鼓管</b>：连接鼓室与鼻咽部，调节鼓室内气压。小儿咽鼓管相较于成人呈<b>短、宽、直、平</b>的特点，咽部感染易逆行导致中耳炎。",
+                aging: "外耳道皮肤变薄、干燥，耵聍腺分泌减少但耵聍易干燥结块堵塞外耳道（耵聍栓塞）。鼓膜增厚、弹性降低，听骨关节僵硬，引起传导性听力减退。",
+                care: "<b>鼓膜穿孔注意点</b>：中耳炎或外伤导致鼓膜穿孔时，严禁自行向耳内滴药水或冲洗，防止污水将病原体带入中耳引起反复感染。<br><br><b>滴耳药与拉耳廓方法</b>：<br>① <b>成人</b>：检查或滴耳药时，应向<b>后上方</b>牵拉耳廓以拉直外耳道。<br>② <b>幼儿</b>：应向<b>后下方</b>牵拉耳廓，这是因为幼儿外耳道骨部未完全发育，方向呈向下平直。<br>③ 滴入药液后，应保持侧卧体位3-5分钟，并用手指轻轻按压耳屏，利于药液流入鼓膜表面。"
+            },
+            {
+                icon: "🐚", title: "内耳与位听感受器",
+                normal: "<b>1. 骨迷路</b>：内含外淋巴。分为前庭、骨半规管和耳蜗。<br><br><b>2. 膜迷路</b>：套在骨迷路内，充满内淋巴。包含位觉和听觉感受器：<br>• <b>位置觉感受器</b>：<b>椭圆囊斑与球囊斑</b>（位于椭圆囊和球囊内，感受头部静止位置及直线变速运动）；<b>壶腹嵴</b>（位于膜半规管的壶腹内，感受头部旋转变速运动的刺激）。<br>• <b>听觉感受器</b>：<b>螺旋器 (Organ of Corti)</b>（位于耳蜗蜗管的下壁/螺旋膜上，接受淋巴液波动刺激产生神经冲动）。<br><br><b>3. 传导路径 (空气传导)</b>：声波 ➔ 鼓膜 ➔ 听小骨链（镫骨）➔ 前庭窗 ➔ 蜗管内淋巴 ➔ 螺旋器 ➔ 耳蜗神经 ➔ 大脑听觉皮层。",
+                aging: "老年人耳蜗基底膜纤维硬化、螺旋器毛细胞退行性变、前庭神经元数量减少。表现为老年性耳聋（高频听力最先丧失）及前庭平衡功能受损引起的反复头晕、眩晕表现。",
+                care: "<b>传导性耳聋与神经性耳聋区别</b>：传导性耳聋是外耳/中耳阻碍了机械振动（如鼓膜穿孔、听骨粘连）；神经性耳聋是内耳毛细胞或听神经受损。<br><br><b>耳聋沟通技巧</b>：与高龄耳聋长者沟通时，应面对长者慢速说话，吐字清晰，声调应<b>低沉（切忌大声尖叫）</b>，因为老年人高频听力退化最严重，尖锐的声音反而听不清，配合手势和纸笔沟通效果更佳。"
+            }
+        ];
+
+        /* === Game 1: Ear Pull Game === */
+        let earScores = { adult: false, infant: false };
+        function handleEarPull(patient, val, btnEl) {
+            const fb = document.getElementById('ear-feedback');
+            fb.classList.remove('hidden');
+
+            // Reset buttons style for current patient
+            document.querySelectorAll(`.ear-${patient}`).forEach(b => {
+                b.className = `ear-${patient} bg-white border border-slate-200 py-2 rounded-lg text-xs font-bold text-slate-600 transition`;
+            });
+
+            if (val === 'correct') {
+                btnEl.className = `ear-${patient} bg-emerald-50 border border-emerald-500 text-emerald-700 py-2 rounded-lg text-xs font-bold transition`;
+                earScores[patient] = true;
+                
+                if (patient === 'adult') {
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 成人牵拉正确！</b>成人外耳道呈向后、上、外弯曲。检查时应向<b>后上方</b>牵拉耳廓，可有效拉直外耳道，耳镜能直接看清鼓膜。";
+                } else {
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 幼儿牵拉正确！</b>幼儿外耳道尚未发育完全，骨部短浅，方向偏向下。检查时应向<b>后下方</b>牵拉耳廓，才能拉直外耳道。";
+                }
+
+                if (earScores.adult && earScores.infant) {
+                    setTimeout(() => {
+                        fb.className = "mt-3 p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-300";
+                        fb.innerHTML = "<b>🎉 检查定位挑战成功！</b>记住解剖学差异：成人向后上方，小儿向后下方，这是床边护理与给药的基本准则！";
+                    }, 1500);
+                }
+            } else {
+                btnEl.className = `ear-${patient} bg-red-50 border border-red-500 text-red-700 py-2 rounded-lg text-xs font-bold transition`;
+                fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-850 border border-red-200";
+                if (patient === 'adult') {
+                    fb.innerHTML = "<b>❌ 牵拉受阻！</b>向后下方牵拉成人耳廓，会导致外耳道的生理性S弯曲更加严重，耳镜视野完全被遮挡。成人应当向后上方牵拉。";
+                } else {
+                    fb.innerHTML = "<b>❌ 牵拉受阻！</b>向后上方牵拉幼儿耳廓，无法拉直其偏平斜下的外耳道，且容易撕裂幼儿娇嫩的软骨。幼儿应当向后下方牵拉。";
+                }
+            }
+        }
+
+        /* === Game 2: Otitis Media === */
+        function answerOtitis(qIndex, choice, btnEl) {
+            const fb = document.getElementById('oti-feedback');
+            fb.classList.remove('hidden');
+
+            if (qIndex === 1) {
+                if (choice === 'B') {
+                    btnEl.className = "oti-q1 bg-emerald-50 border border-emerald-500 text-emerald-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 分析正确！</b>幼儿的咽鼓管具有<b>短、宽、直、平</b>的特殊解剖特点。感冒或咽喉炎时，咽部的分泌物及病原体极易在吞咽或打喷嚏时，逆流经过咽鼓管进入鼓室，诱发急性化脓性中耳炎。";
+                    document.getElementById('oti-part2').classList.remove('hidden');
+                } else {
+                    btnEl.className = "oti-q1 bg-red-50 border border-red-500 text-red-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 分析错误。</b>外耳道有完整的鼓膜阻隔，细菌在没有外伤穿孔的情况下是无法穿过鼓膜进入中耳的。引起中耳炎的途径主要是经内侧咽鼓管逆行感染。";
+                }
+            } else if (qIndex === 2) {
+                if (choice === 'B') {
+                    btnEl.className = "oti-q2 bg-emerald-50 border border-emerald-500 text-emerald-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>🎉 挑战成功！</b>空气传导必须依靠外耳道、鼓膜的振动，再由听小骨链进行机械放大传入内耳。如果鼓膜穿孔、积脓，空气传导的机械回路中断，会导致严重的传导性耳聋。但骨传导依然可以直接通过颅骨振动液体，因此听觉不会完全丧失。";
+                } else {
+                    btnEl.className = "oti-q2 bg-red-50 border border-red-500 text-red-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 回答错误。</b>骨传导不依赖鼓膜和听小骨链，所以鼓膜穿孔对骨传导没有直接影响。最先受损的是依靠鼓膜及听骨的『空气传导』。";
+                }
+            }
+        }
+
+        /* === Quiz Data === */
+        const quizData = [
+            { q: "1. 眼球壁结构中，无色透明、无血管分布、但感觉神经末梢极其丰富的是？", options: ["角膜", "巩膜", "虹膜", "视网膜"], answer: 0, explanation: "角膜占外膜前1/6，无色透明、无血管，富含感觉神经末梢，保护及屈光作用强。" },
+            { q: "2. 巩膜静脉窦作为房水回流静脉血的通道，位于眼球壁的哪一层？", options: ["外膜（纤维膜）", "中膜（血管膜）", "内膜（视网膜）", "玻璃体内"], answer: 0, explanation: "巩膜静脉窦是巩膜与角膜交界处深部的环形管道，属于外膜（纤维膜）巩膜的部分，用于回流房水。" },
+            { q: "3. 控制瞳孔大小以调节进光量的瞳孔括约肌和开大肌，位于眼球壁的？", options: ["巩膜内", "虹膜内", "睫状体内", "视网膜内"], answer: 1, explanation: "虹膜位于中膜最前部，呈环状板，中央有瞳孔。虹膜内有瞳孔括约肌（缩瞳）和开大肌（扩瞳）。" },
+            { q: "4. 产生眼球内容物中“房水”的主要解剖结构是？", options: ["脉络丛", "角膜上皮", "睫状体", "泪腺"], answer: 2, explanation: "房水是由中膜睫状体上的睫状突上皮细胞分泌产生的，具有维持眼压和营养眼球组织的功能。" },
+            { q: "5. 视网膜上视力最敏锐、感光细胞极其密集的黄色小区域称为？", options: ["视神经盘", "生理性盲点", "黄斑（中央凹）", "睫状突"], answer: 2, explanation: "黄斑是视网膜后极部一黄色小区，其中央凹陷称中央凹，是视觉最敏锐的区域。" },
+            { q: "6. 视网膜上的生理性盲点是指哪个结构？", options: ["黄斑", "中央凹", "视神经盘", "虹膜部"], answer: 3, explanation: "视神经盘（视神经乳头）是视神经节细胞轴突汇聚离开眼球处，无感光细胞，因而在视野中对应一个生理性盲点。" },
+            { q: "7. 眼球的折光系统（屈光装置）不包括下列哪个结构？", options: ["角膜", "房水", "晶状体", "视网膜"], answer: 3, explanation: "眼球的屈光系统由无色透明的折光介质组成，包括角膜、房水、晶状体和玻璃体。视网膜是感光成像装置，不是屈光介质。" },
+            { q: "8. 老年人因为晶状体水分减少、发生硬化，导致看近物调节困难的现象称？", options: ["青光眼", "白内障", "老花眼（老视）", "近视眼"], answer: 2, explanation: "随年龄增长，晶状体失去弹性并发生硬化，睫状肌调节力降低，导致近点远移，形成老花眼。" },
+            { q: "9. 房水循环障碍、眼压急剧升高，导致视神经受压、视野缩小的典型眼病是？", options: ["白内障", "青光眼", "砂眼", "麦粒肿"], answer: 1, explanation: "房水生成与回流失衡导致眼内压升高，称为青光眼。高眼压会直接压迫并损害视神经纤维，导致失明。" },
+            { q: "10. 泪液由泪腺分泌后流经眼球表面，其排入鼻腔的最终通道是注入？", options: ["上鼻道", "中鼻道", "下鼻道", "蝶筛隐窝"], answer: 2, explanation: "泪道排出路径：泪点➔泪小管➔泪囊➔鼻泪管➔下鼻道。所以泪液的终点是鼻腔的下鼻道。" },
+            { q: "11. 控制眼球向外滑行的外直肌瘫痪（CN VI展神经受损），患者眼球会出现？", options: ["外斜视", "内斜视", "瞳孔斜向上方", "上睑下垂"], answer: 1, explanation: "外直肌收缩使眼球向外转。外直肌瘫痪时，拮抗肌（内直肌）张力占优，会导致眼球呈现内斜视（斗鸡眼）。" },
+            { q: "12. 在耳部鼓膜的紧张部前下方，活体可见一个三角形的反光区，称为？", options: ["鼓膜脐", "松弛部", "光锥", "乳突"], answer: 2, explanation: "光锥是鼓膜紧张部前下方的一个三角形反光区，是鼓膜位置正常、半透明度良好的临床健康标志。" },
+            { q: "13. 咽鼓管是连接下列哪两个部位的解剖学通道？", options: ["外耳道与中耳鼓室", "中耳鼓室与鼻咽部", "内耳与前庭", "喉部与中耳"], answer: 1, explanation: "咽鼓管连接中耳鼓室与鼻咽部，平时关闭，吞咽或打喷嚏时开放，用于维持鼓室内气压与外界平衡。" },
+            { q: "14. 幼儿之所以易在感冒后并发中耳炎，其主要解剖学机制是小儿咽鼓管？", options: ["管径极其细窄、极易发生机械堵塞", "走向弯曲呈S形", "较之成人短、宽、直、平", "开口于外耳道"], answer: 2, explanation: "幼儿咽鼓管相较于成人短、宽、口径大，且走向接近水平，咽部的细菌、分泌物极易逆行入鼓室发生中耳炎。" },
+            { q: "15. 声波震动传导至内耳，最终激发的听觉感受器是？", options: ["椭圆囊斑", "壶腹嵴", "螺旋器（Organ of Corti）", "球囊斑"], answer: 2, explanation: "螺旋器位于耳蜗蜗管的基底膜上，是听觉的末梢感受器。椭圆囊斑、球囊斑和壶腹嵴都是位置觉（平衡）感受器。" }
+        ];
+
+        let score = 0;
+        let answered = Array(quizData.length).fill(false);
+
+        function buildQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = "";
+            quizData.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "glass-panel p-5";
+                
+                let optionsHTML = "";
+                item.options.forEach((opt, optIdx) => {
+                    optionsHTML += `
+                        <button onclick="checkAnswer(${idx}, ${optIdx}, this)" class="quiz-opt-${idx} w-full text-left bg-white border border-slate-200 p-3 rounded-xl text-xs font-bold text-slate-600 transition click-target mb-2 flex justify-between items-center">
+                            <span>${['A','B','C','D'][optIdx]}. ${opt}</span>
+                            <span class="feedback-icon text-sm"></span>
+                        </button>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <h3 class="font-black text-slate-800 text-sm mb-4 leading-relaxed">${item.q}</h3>
+                    <div class="options-group">${optionsHTML}</div>
+                    <div id="quiz-fb-${idx}" class="hidden mt-3 p-3 bg-emerald-50 text-emerald-800 rounded-xl text-[11px] font-medium leading-relaxed">
+                        <b>正确答案：${['A','B','C','D'][item.answer]}</b><br>
+                        ${item.explanation}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qIdx, optIdx, btnEl) {
+            if (answered[qIdx]) return;
+            answered[qIdx] = true;
+
+            const isCorrect = (optIdx === quizData[qIdx].answer);
+            const buttons = document.querySelectorAll(`.quiz-opt-${qIdx}`);
+            
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.add('opacity-70');
+                if (idx === quizData[qIdx].answer) {
+                    btn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    btn.querySelector('.feedback-icon').innerText = "✅";
+                }
+            });
+
+            if (!isCorrect) {
+                btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                btnEl.querySelector('.feedback-icon').innerText = "❌";
+            } else {
+                score++;
+                document.getElementById('score-display').innerText = score;
+            }
+
+            document.getElementById(`quiz-fb-${qIdx}`).classList.remove('hidden');
+        }
+
+        /* === Init === */
+        window.onload = function() {
+            buildQuiz();
+        }
+    </script>
+</body>
+</html>

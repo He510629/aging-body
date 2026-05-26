@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>内分泌调节与照护 | 老年生理与照护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F5F3FF;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        .app-bg { background: linear-gradient(180deg, #EDE9FE 0%, #F5F3FF 100%); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px rgba(109, 40, 217, 0.05);
+            border-radius: 24px;
+        }
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1);
+            z-index: 100; max-height: 85vh; overflow-y: auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.4); opacity:0; pointer-events:none;
+            transition: opacity 0.3s ease; z-index:99;
+        }
+        .overlay.active { opacity:1; pointer-events:auto; }
+        .timeline-line {
+            position: absolute; width: 4px;
+            background: linear-gradient(to bottom, #A78BFA, #6D28D9);
+            left: 38px; top: 20px; bottom: 20px; z-index: 0;
+        }
+        .anatomy-node {
+            position: relative; z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .anatomy-node:active { transform: scale(0.95); }
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            border-top: 1px solid #ddd6fe;
+            display: flex; justify-content: space-around;
+            padding: 10px 0; padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 90;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #9CA3AF; font-size: 11px; font-weight: 500;
+            transition: color 0.3s ease; cursor: pointer;
+        }
+        .nav-item.active { color: #6D28D9; }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1); }
+        .nav-item.active .nav-icon { transform: translateY(-4px) scale(1.1); }
+        .page-view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .page-view.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .click-target { cursor: pointer; transition: all 0.2s; }
+        .click-target:active { transform: scale(0.95); }
+        .detail-tab.active { background-color: #6D28D9; color: white; font-weight: bold; }
+    </style>
+</head>
+<body class="app-bg">
+
+    <!-- Top Header -->
+    <header class="pt-12 pb-6 px-6 bg-gradient-to-br from-[#6D28D9] to-[#8B5CF6] rounded-b-[40px] shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black text-white tracking-tight">内分泌系统解析</h1>
+            <p class="text-violet-100 mt-2 text-sm font-medium">激素·增龄变化·照护：从生命调节到急救实操</p>
+        </div>
+        <div class="absolute right-[-20px] top-6 text-white/10 text-7xl font-black italic">ENDOCR</div>
+        <div class="absolute w-20 h-20 rounded-full bg-white/10 blur-xl top-0 left-10"></div>
+        <div class="absolute w-32 h-32 rounded-full bg-white/10 blur-2xl bottom-[-20px] right-[-20px]"></div>
+    </header>
+
+    <!-- ========== PAGE 1: Anatomy ========== -->
+    <main id="view-anatomy" class="page-view active px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-violet-600 rounded-full mr-2"></span>点击节点深度解析内分泌器官
+        </h2>
+        <div class="relative pl-2 pb-10">
+            <div class="timeline-line"></div>
+            <!-- Node 1: Pituitary -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(0)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-violet-100 flex-shrink-0">🧠</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">垂体 (Pituitary Gland)</h3>
+                    <p class="text-xs text-violet-600 font-bold mt-1 bg-violet-100 inline-block px-2 py-0.5 rounded-full">垂体窝·前叶腺垂体·后叶神经垂体</p>
+                </div>
+            </div>
+            <!-- Node 2: Pineal -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(1)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-violet-100 flex-shrink-0">🌲</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">松果体 (Pineal Gland)</h3>
+                    <p class="text-xs text-indigo-600 font-bold mt-1 bg-indigo-100 inline-block px-2 py-0.5 rounded-full">上丘脑后上方·褪黑素·16岁后钙化</p>
+                </div>
+            </div>
+            <!-- Node 3: Thyroid & Parathyroid -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(2)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-violet-100 flex-shrink-0">🦋</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">甲状腺与甲状旁腺</h3>
+                    <p class="text-xs text-violet-600 font-bold mt-1 bg-violet-100 inline-block px-2 py-0.5 rounded-full">“H”形·甲状旁腺升血钙·呆小症与黏液性水肿</p>
+                </div>
+            </div>
+            <!-- Node 4: Adrenal -->
+            <div class="anatomy-node flex items-center click-target" onclick="openNodeDetail(3)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-violet-100 flex-shrink-0">🍊</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">肾上腺 (Adrenal Glands)</h3>
+                    <p class="text-xs text-amber-600 font-bold mt-1 bg-amber-100 inline-block px-2 py-0.5 rounded-full">皮质三带·髓质强心升压·抢救肾上腺素</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 2: Care Interactions ========== -->
+    <main id="view-care" class="page-view px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-violet-600 rounded-full mr-2"></span>临床技能与情境互动
+        </h2>
+
+        <!-- Interaction 1: Epinephrine Dilution Game -->
+        <div class="glass-panel p-5 mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-violet-700 text-lg">💉 抢救实操：肾上腺素静推模拟</h3>
+                <span class="text-[10px] bg-violet-100 text-violet-800 px-2 py-1 rounded font-bold">急救挑战</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">患者因过敏性休克送来急诊，医生下达“静脉注射肾上腺素1mg”的口头医嘱。请完成正确的给药配制与注射步骤！</p>
+
+            <div class="bg-violet-50 rounded-2xl p-4 border border-violet-200 mb-4 text-xs space-y-2">
+                <div class="font-bold text-violet-800">⚠️ 临床急救考点说明：</div>
+                <p>• <b>肌肉注射 (肌注)</b>：用量 <b>0.2~0.5mg</b> (最大 0.5mg)，无需稀释。</p>
+                <p>• <b>静脉注射 (静注)</b>：必须将肾上腺素<b>稀释10倍</b>，每次推注 <b>1mg</b>，且必须<b>缓慢推注5分钟</b>，以防心律失常或血压骤升导致脑出血！</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Step 1: Dilution Choose -->
+                <div id="epi-step-1">
+                    <span class="text-xs font-black text-slate-700 block mb-2">步骤 1: 你应该如何准备原液和稀释液？</span>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="handleEpiStep(1, 'A', this)" class="epi-opt bg-white border border-slate-200 p-3 text-left rounded-xl text-xs font-bold text-slate-700 transition">
+                            A. 取肾上腺素1mg（1ml），直接推注，速度越快越好。
+                        </button>
+                        <button onclick="handleEpiStep(1, 'B', this)" class="epi-opt bg-white border border-slate-200 p-3 text-left rounded-xl text-xs font-bold text-slate-700 transition">
+                            B. 取肾上腺素1mg（1ml），加入9ml生理盐水（共10ml，稀释10倍）。
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Speed Choose -->
+                <div id="epi-step-2" class="hidden">
+                    <span class="text-xs font-black text-slate-700 block mb-2">步骤 2: 注入稀释后的药液时，应控制什么速度？</span>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="handleEpiStep(2, 'A', this)" class="epi-opt bg-white border border-slate-200 p-3 text-left rounded-xl text-xs font-bold text-slate-700 transition">
+                            A. 在 10秒 内快速推注完毕，立即提升血压。
+                        </button>
+                        <button onclick="handleEpiStep(2, 'B', this)" class="epi-opt bg-white border border-slate-200 p-3 text-left rounded-xl text-xs font-bold text-slate-700 transition">
+                            B. 缓慢静脉推注，控制在 5分钟 内均匀推完。
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div id="epi-feedback" class="hidden p-3 rounded-xl text-xs font-medium leading-relaxed"></div>
+            </div>
+        </div>
+
+        <!-- Interaction 2: Thyroid Nodule Sorter -->
+        <div class="glass-panel p-5 mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-violet-700 text-lg">🥗 食疗分类：甲状腺结节患者饮食</h3>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-1 rounded font-bold">营养指导</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">请判断下列食物中，哪些是甲状腺结节患者【宜吃】的消结增强免疫食物，哪些是【忌吃】的高碘刺激食物：</p>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                    <h4 class="text-xs font-black text-emerald-800 mb-2">✅ 宜吃食品</h4>
+                    <div id="list-good" class="space-y-1.5 min-h-[80px]"></div>
+                </div>
+                <div class="bg-red-50 p-3 rounded-xl border border-red-200">
+                    <h4 class="text-xs font-black text-red-800 mb-2">❌ 忌吃食品</h4>
+                    <div id="list-bad" class="space-y-1.5 min-h-[80px]"></div>
+                </div>
+            </div>
+
+            <!-- Current Food pool -->
+            <div class="bg-white rounded-xl p-3 border border-violet-100 text-center">
+                <div id="current-food-display" class="text-lg font-black text-violet-800 mb-3">...</div>
+                <div class="flex justify-center space-x-3">
+                    <button onclick="sortFood('good')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-6 rounded-lg transition click-target">宜吃</button>
+                    <button onclick="sortFood('bad')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-6 rounded-lg transition click-target">忌吃</button>
+                </div>
+            </div>
+            <div id="food-feedback" class="hidden mt-3 p-3 rounded-xl text-xs font-medium text-center"></div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 3: Quiz ========== -->
+    <main id="view-quiz" class="page-view px-5 pt-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-black text-slate-800 flex items-center">
+                <span class="w-1.5 h-5 bg-violet-600 rounded-full mr-2"></span>内分泌系统测评
+            </h2>
+            <div class="bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-xs font-black shadow-inner">
+                得分 <span id="score-display" class="text-lg">0</span>/15
+            </div>
+        </div>
+        <div id="quiz-container" class="space-y-6"></div>
+    </main>
+
+    <!-- ========== BOTTOM SHEET (Node Detail) ========== -->
+    <div class="overlay" id="overlay" onclick="closeNodeDetail()"></div>
+    <div class="bottom-sheet" id="detail-sheet">
+        <div class="p-6">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div class="flex items-center mb-6">
+                <div id="modal-icon" class="text-4xl mr-4 bg-violet-50 w-16 h-16 flex items-center justify-center rounded-2xl"></div>
+                <div><h2 id="modal-title" class="text-2xl font-black text-slate-800"></h2></div>
+            </div>
+            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                <button onclick="switchModalTab('normal')" id="mtab-normal" class="detail-tab active flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">✅ 正常结构</button>
+                <button onclick="switchModalTab('aging')" id="mtab-aging" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">⚠️ 老年退化</button>
+                <button onclick="switchModalTab('care')" id="mtab-care" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">🛡️ 照护要点</button>
+            </div>
+            <div id="md-normal" class="modal-content-section"></div>
+            <div id="md-aging" class="modal-content-section hidden"></div>
+            <div id="md-care" class="modal-content-section hidden"></div>
+            <button onclick="closeNodeDetail()" class="mt-8 w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200 transition click-target">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <nav class="bottom-nav">
+        <div class="nav-item active click-target" onclick="switchNav('anatomy',this)"><span class="nav-icon mb-1">🩻</span><span>探索结构</span></div>
+        <div class="nav-item click-target" onclick="switchNav('care',this)"><span class="nav-icon mb-1">🎮</span><span>照护实操</span></div>
+        <div class="nav-item click-target" onclick="switchNav('quiz',this)"><span class="nav-icon mb-1">📝</span><span>答题测评</span></div>
+    </nav>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        /* === Navigation === */
+        function switchNav(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        /* === Anatomy Data === */
+        const anatomyData = [
+            {
+                icon: "🧠", title: "垂体 (Pituitary Gland)",
+                normal: "<b>1. 位置和外形</b>：位于颅底蝶鞍的垂体窝内，呈灰红色椭圆形，借垂体柄向上连于下丘脑。<br><br><b>2. 分部和功能</b>：分为<b>腺垂体</b>（前叶，分泌生长激素、催乳素、促甲状腺激素、促肾上腺皮质激素、促性腺激素等）和<b>神经垂体</b>（后叶，储存并释放抗利尿激素/血管升压素和催产素）。",
+                aging: "老年人垂体体积轻度缩小，分泌生长激素的细胞数量和活性下降，促卵泡素和促黄体素有代偿性升高的阶段但后期趋于稳定，抗利尿激素分泌可能出现调控异常，导致老年人易发生低钠血症或脱水。",
+                care: "<b>临床注意点</b>：老年人抗利尿激素调节反射变弱，对口渴的敏感度降低。照护中应主动提示长者适量补充水分，避免在夏季发生严重的脱水或电解质紊乱。"
+            },
+            {
+                icon: "🌲", title: "松果体 (Pineal Gland)",
+                normal: "<b>1. 位置与形态</b>：淡红色椭圆形小体，位于上丘脑缰连合的后上方，借细柄与第三脑室顶后部相连。<br><br><b>2. 功能</b>：分泌<b>褪黑素</b>。能抑制性腺发育，调节生物钟，增强免疫，抗衰老。幼年分泌不足可导致性早熟，分泌旺盛会导致青春期延迟。",
+                aging: "<b>增龄变化</b>：松果体自7岁后逐渐萎缩，<b>16岁后逐渐钙化</b>。钙化后在X线或CT影像上可显影，是判断脑部占位性病变是否导致中线结构移位的重要天然定位标志。",
+                care: "<b>睡眠障碍照护</b>：由于老年松果体钙化和褪黑素分泌量大幅度减少，老年人通常表现为睡眠缩短、早醒、易醒及昼夜节律失调。照护中应指导长者日间多晒太阳，限制日间小睡，睡前营造黑暗安静环境，必要时按医嘱补充褪黑素。"
+            },
+            {
+                icon: "🦋", title: "甲状腺与甲状旁腺",
+                normal: "<b>1. 甲状腺</b>：呈“H”形，棕红色质软，位于颈前部（喉结下方，气管前方），分左右两叶和峡部。功能是分泌<b>甲状腺激素</b>，调节基础代谢，影响神经发育。<br><br><b>2. 甲状旁腺</b>：上、下两对，呈扁椭圆形棕黄色，位于甲状腺侧叶后面。功能是分泌<b>甲状旁腺激素(PTH)</b>，升高血钙，调节钙磷代谢。",
+                aging: "老年人甲状腺发生退行性变、纤维化，甲状腺素合成与代谢率降低，基础代谢率逐年下降。<br><br><b>临床意义</b>：甲状腺手术时若不慎将甲状旁腺误切，由于PTH骤减，血钙大幅降低，会导致神经肌肉兴奋性极高，引起严重的<b>手足抽搐</b>。",
+                care: "<b>呆小症与黏液性水肿</b>：幼年甲状腺素缺乏导致<b>呆小症</b>（智力低下且身材矮小）；成人缺乏导致<b>黏液性水肿</b>（全身浮肿、反应迟钝）。<br><br><b>甲亢服药指导</b>：甲亢患者服用抗甲状腺药物分初始、减量、维持三阶段，通常用药2周后显效，但整个疗程长达<b>1.5至2年</b>，必须指导患者遵医嘱足疗程服药，不可自行停药或减药，以防复发。"
+            },
+            {
+                icon: "🍊", title: "肾上腺 (Adrenal Glands)",
+                normal: "<b>1. 位置与形态</b>：左、右各一，位于肾的内上方。左侧近似半月形，右侧近似三角形。<br><br><b>2. 分部</b>：<br>• <b>皮质</b>：球状带分泌盐皮质激素（调水盐）；束状带分泌糖皮质激素（调糖）；网状带分泌性激素。<br>• <b>髓质</b>：分泌<b>肾上腺素</b>（强心、抢救过敏休克）和<b>去甲肾上腺素</b>（升压）。",
+                aging: "老年人肾上腺皮质细胞老化，糖皮质激素和盐皮质激素的储备功能下降，导致对创伤、手术、急性感染等外界应激事件的耐受能力显著下降，易发生肾上腺皮质功能不全表现。",
+                care: "<b>抢救休克肾上腺素静推考点</b>：<br>① <b>肌肉注射</b>：用量 <b>0.2~0.5mg</b>，最大剂量0.5mg。<br>② <b>静脉注射</b>：必须<b>稀释10倍</b>（取1mg稀释至10ml），且必须<b>缓慢推注5分钟</b>，每次静注1mg，间隔3-5分钟。绝不能直接推注高浓度原液，否则极易引起心室颤动或高血压脑出血。"
+            }
+        ];
+
+        /* === Modal Handling === */
+        function openNodeDetail(i) {
+            const d = anatomyData[i];
+            document.getElementById('modal-icon').innerText = d.icon;
+            document.getElementById('modal-title').innerText = d.title;
+            document.getElementById('md-normal').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.normal}</p>`;
+            document.getElementById('md-aging').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.aging}</p>`;
+            document.getElementById('md-care').innerHTML = `<p class="leading-relaxed text-slate-700 font-medium text-[15px]">${d.care}</p>`;
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('detail-sheet').classList.add('open');
+            switchModalTab('normal');
+        }
+        function closeNodeDetail() {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('detail-sheet').classList.remove('open');
+        }
+        function switchModalTab(id) {
+            ['normal','aging','care'].forEach(t => {
+                document.getElementById('mtab-'+t).classList.remove('active');
+                document.getElementById('md-'+t).classList.add('hidden');
+            });
+            document.getElementById('mtab-'+id).classList.add('active');
+            document.getElementById('md-'+id).classList.remove('hidden');
+        }
+
+        /* === Game 1: Epinephrine Dilution === */
+        let epiStep = 1;
+        function handleEpiStep(step, choice, btnEl) {
+            const fb = document.getElementById('epi-feedback');
+            fb.classList.remove('hidden');
+
+            // Reset options style in current step
+            document.querySelectorAll(`.epi-opt`).forEach(b => {
+                b.classList.remove('bg-emerald-50', 'border-emerald-500', 'text-emerald-700', 'bg-red-50', 'border-red-500', 'text-red-700');
+            });
+
+            if (step === 1) {
+                if (choice === 'B') {
+                    btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 步骤 1 正确！</b>静脉推注肾上腺素时必须稀释10倍（1mg加生理盐水至10ml）。直接静推未稀释的高浓度原液是严重违规操作，会导致恶性心律失常甚至死亡。";
+                    setTimeout(() => {
+                        document.getElementById('epi-step-2').classList.remove('hidden');
+                        document.getElementById('epi-step-2').scrollIntoView({ behavior: 'smooth' });
+                    }, 1000);
+                } else {
+                    btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 步骤 1 错误！</b>绝不能直接静脉推注高浓度原液！高浓度肾上腺素进入静脉会引起反射性心肌过度兴奋，造成室颤或严重高血压，请重新选择稀释操作。";
+                }
+            } else if (step === 2) {
+                if (choice === 'B') {
+                    btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>🎉 步骤 2 挑战成功！</b>缓慢推注（推注5分钟）可以让稀释后的药物在体循环中缓慢起效，给药极其安全，成功稳定了心率并提升了患者血压，抢救成功！";
+                } else {
+                    btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 步骤 2 错误！</b>快速推注哪怕稀释过的药液也是极其危险的！急骤的药物输入仍会诱发高血压脑出血或室速、室颤，必须控制在5分钟内缓慢静推。";
+                }
+            }
+        }
+
+        /* === Game 2: Diet Sorter === */
+        const foods = [
+            { name: "海带", type: "bad", reason: "海带富含碘，过多的碘会刺激甲状腺结节增大，属于忌吃食品。" },
+            { name: "猕猴桃", type: "good", reason: "富含维生素C，能消结散肿并提高机体免疫力，属于宜吃食品。" },
+            { name: "紫菜", type: "bad", reason: "紫菜碘含量极高，甲状腺结节患者应当避免食用。" },
+            { name: "油菜/芥菜", type: "good", reason: "十字花科及一些绿叶菜在中医及现代食疗中具有软坚散结作用，属于宜吃。" },
+            { name: "辣椒", type: "bad", reason: "辣椒等辛辣刺激食物会加重甲状腺局部炎症充血，属于忌吃。" },
+            { name: "香菇/木耳", type: "good", reason: "富含真菌多糖，可显著提高免疫力，属于宜吃食品。" },
+            { name: "肥猪肉", type: "bad", reason: "肥腻油煎食物容易阻碍基础代谢，引起结节症状加重，属于忌吃。" }
+        ];
+
+        let currentFoodIdx = 0;
+        function showFood() {
+            if (currentFoodIdx < foods.length) {
+                document.getElementById('current-food-display').innerText = foods[currentFoodIdx].name;
+                document.getElementById('food-feedback').classList.add('hidden');
+            } else {
+                document.getElementById('current-food-display').innerText = "🎉 饮食分类全部完成！";
+                document.getElementById('food-feedback').className = "mt-3 p-3 rounded-xl text-xs font-bold text-center bg-emerald-50 text-emerald-800 border border-emerald-200";
+                document.getElementById('food-feedback').innerHTML = "甲状腺结节饮食原则：宜吃消坚散结（猕猴桃、油菜）、高免疫力食物（木耳、香菇）；忌吃高碘（海带、紫菜）和辛辣刺激（辣椒、肥肉）。";
+                document.getElementById('food-feedback').classList.remove('hidden');
+            }
+        }
+
+        function sortFood(type) {
+            if (currentFoodIdx >= foods.length) return;
+            const item = foods[currentFoodIdx];
+            const fb = document.getElementById('food-feedback');
+            fb.classList.remove('hidden');
+
+            if (item.type === type) {
+                fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                fb.innerHTML = `<b>正确！</b>${item.name}：${item.reason}`;
+                
+                // Add to list
+                const list = document.getElementById(type === 'good' ? 'list-good' : 'list-bad');
+                const div = document.createElement('div');
+                div.className = "text-[10px] font-bold bg-white px-2 py-0.5 rounded shadow-sm text-slate-700";
+                div.innerText = item.name;
+                list.appendChild(div);
+
+                currentFoodIdx++;
+                setTimeout(showFood, 1500);
+            } else {
+                fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                fb.innerHTML = `<b>回答错误。</b>${item.name}不应该归为此类。提示：${item.reason}`;
+            }
+        }
+
+        /* === Quiz Data === */
+        const quizData = [
+            { q: "1. 垂体位于颅底蝶鞍的哪个部位？", options: ["垂体窝", "鞍背", "视交叉沟", "鼓室"], answer: 0, explanation: "垂体位于颅底蝶鞍中央的垂体窝内，借垂体柄向上连于下丘脑。" },
+            { q: "2. 下列不属于腺垂体（前叶）分泌的激素是？", options: ["生长激素", "催乳素", "促甲状腺激素", "抗利尿激素"], answer: 3, explanation: "抗利尿激素和催产素是由下丘脑合成，储存在神经垂体（后叶）并由此释放的。腺垂体分泌生长激素、催乳素、促甲状腺激素等。" },
+            { q: "3. 神经垂体释放的激素包括下列哪项？", options: ["生长激素", "抗利尿激素", "促甲状腺激素", "促性腺激素"], answer: 1, explanation: "神经垂体（后叶）储存并释放由下丘脑产生的抗利尿激素和催产素。" },
+            { q: "4. 松果体分泌的主要激素是？", options: ["甲状腺素", "生长激素", "褪黑素", "肾上腺素"], answer: 2, explanation: "松果体主要分泌褪黑素，褪黑素能抑制性腺发育，调节生物钟和机体免疫。" },
+            { q: "5. 松果体随年龄增长会出现钙化，通常其开始钙化的年龄是？", options: ["7岁后", "16岁后", "25岁后", "60岁后"], answer: 1, explanation: "松果体在幼年发达，7岁后逐渐萎缩，16岁后逐渐钙化，其钙化在X线或CT扫描时可显影，用作定位标志。" },
+            { q: "6. 甲状腺的正常位置在颈前部，具体附着于？", options: ["喉结上方，食管前方", "喉结下方，气管前方", "喉结下方，食管前方", "胸骨角后方"], answer: 1, explanation: "甲状腺位于颈前部、喉结下方、气管前方，呈“H”形，分左、右叶和甲状腺峡。" },
+            { q: "7. 甲状腺合成甲状腺激素所必需的微量元素是？", options: ["铁", "碘", "钙", "锌"], answer: 1, explanation: "碘是合成甲状腺激素的核心原料，过低或过高都可能导致甲状腺功能障碍。" },
+            { q: "8. 幼年时期甲状腺功能低下，会导致哪种典型疾病？", options: ["呆小症", "黏液性水肿", "侏儒症", "巨人症"], answer: 0, explanation: "幼年甲状腺功能低下导致呆小症，主要表现为智力低下且身体矮小。侏儒症是由于幼年生长激素不足引起的，智力正常。" },
+            { q: "9. 成人甲状腺功能低下，最典型的临床表现是？", options: ["呆小症", "黏液性水肿", "甲亢", "手足抽搐"], answer: 1, explanation: "成人甲状腺功能低下会导致黏液性水肿，患者可有非凹陷性水肿、基础代谢低下、反应迟钝等。" },
+            { q: "10. 甲亢患者的合理饮食照护原则不包括？", options: ["高蛋白、高热量饮食", "补充水分2000-2500ml", "增加高碘海产品摄入", "戒烟酒、限制辛辣刺激"], answer: 2, explanation: "甲亢患者必须严格限制碘的摄入，应避免海带、紫菜、海鱼等富碘食物，否则会加重病情。" },
+            { q: "11. 针对服用抗甲状腺药物的甲亢患者，合理的药照护指导是？", options: ["症状稍有缓解即可自行停药", "药物通常在服药后立即显效", "疗程通常需要坚持1.5~2年", "每日根据自觉症状调整药量"], answer: 2, explanation: "抗甲状腺药物疗程长至1.5-2年，显效需要2周左右，停药和减药需要依据甲状腺功能测定由医生决定，擅自停药极易复发。" },
+            { q: "12. 在甲状腺手术时，若不慎将其后方的甲状旁腺切除，患者可能会发生？", options: ["呆小症", "甲状腺代偿性肿大", "手足抽搐", "黏液性水肿"], answer: 2, explanation: "甲状旁腺分泌PTH升高血钙。切除会导致血钙骤降，神经肌肉兴奋性过高，引起手足抽搐。" },
+            { q: "13. 肾上腺皮质由外向内分为三层，其中最外侧的球状带主要分泌？", options: ["盐皮质激素", "糖皮质激素", "性激素", "肾上腺素"], answer: 0, explanation: "肾上腺皮质球状带分泌盐皮质激素，调节水盐代谢；束状带分泌糖皮质激素；网状带分泌性激素。" },
+            { q: "14. 肾上腺皮质束状带分泌的激素主要功能是？", options: ["调节水盐代谢", "调节糖代谢", "影响性发育", "心肌兴奋"], answer: 1, explanation: "束状带主要分泌糖皮质激素，参与糖及蛋白质等新陈代谢的调节。" },
+            { q: "15. 抢救休克时，静脉推注肾上腺素的正确用量和速度是？", options: ["取1mg原液，10秒内快速静脉推注", "稀释10倍，每次1mg，缓慢推注5分钟", "稀释100倍，每次5mg，缓慢推注5分钟", "取0.5mg原液，直接快速静脉注射"], answer: 1, explanation: "静注肾上腺素必须稀释10倍，每次注射1mg，且必须控制在5分钟内缓慢静推，严密监护心率血压。" }
+        ];
+
+        let score = 0;
+        let answered = Array(quizData.length).fill(false);
+
+        function buildQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = "";
+            quizData.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "glass-panel p-5";
+                
+                let optionsHTML = "";
+                item.options.forEach((opt, optIdx) => {
+                    optionsHTML += `
+                        <button onclick="checkAnswer(${idx}, ${optIdx}, this)" class="quiz-opt-${idx} w-full text-left bg-white border border-slate-200 p-3 rounded-xl text-xs font-bold text-slate-600 transition click-target mb-2 flex justify-between items-center">
+                            <span>${['A','B','C','D'][optIdx]}. ${opt}</span>
+                            <span class="feedback-icon text-sm"></span>
+                        </button>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <h3 class="font-black text-slate-800 text-sm mb-4 leading-relaxed">${item.q}</h3>
+                    <div class="options-group">${optionsHTML}</div>
+                    <div id="quiz-fb-${idx}" class="hidden mt-3 p-3 bg-violet-50 text-violet-800 rounded-xl text-[11px] font-medium leading-relaxed">
+                        <b>正确答案：${['A','B','C','D'][item.answer]}</b><br>
+                        ${item.explanation}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qIdx, optIdx, btnEl) {
+            if (answered[qIdx]) return;
+            answered[qIdx] = true;
+
+            const isCorrect = (optIdx === quizData[qIdx].answer);
+            const buttons = document.querySelectorAll(`.quiz-opt-${qIdx}`);
+            
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.add('opacity-70');
+                if (idx === quizData[qIdx].answer) {
+                    btn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    btn.querySelector('.feedback-icon').innerText = "✅";
+                }
+            });
+
+            if (!isCorrect) {
+                btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                btnEl.querySelector('.feedback-icon').innerText = "❌";
+            } else {
+                score++;
+                document.getElementById('score-display').innerText = score;
+            }
+
+            document.getElementById(`quiz-fb-${qIdx}`).classList.remove('hidden');
+        }
+
+        /* === Init === */
+        window.onload = function() {
+            buildQuiz();
+            showFood();
+        }
+    </script>
+</body>
+</html>

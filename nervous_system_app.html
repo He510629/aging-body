@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>神经元电路与照护 | 老年生理与照护</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F0F9FF;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        .app-bg { background: linear-gradient(180deg, #E0F2FE 0%, #F0F9FF 100%); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px rgba(14, 165, 233, 0.05);
+            border-radius: 24px;
+        }
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1);
+            z-index: 100; max-height: 85vh; overflow-y: auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.4); opacity:0; pointer-events:none;
+            transition: opacity 0.3s ease; z-index:99;
+        }
+        .overlay.active { opacity:1; pointer-events:auto; }
+        .timeline-line {
+            position: absolute; width: 4px;
+            background: linear-gradient(to bottom, #7DD3FC, #0284C7);
+            left: 38px; top: 20px; bottom: 20px; z-index: 0;
+        }
+        .anatomy-node {
+            position: relative; z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .anatomy-node:active { transform: scale(0.95); }
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            border-top: 1px solid #bae6fd;
+            display: flex; justify-content: space-around;
+            padding: 10px 0; padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 90;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #9CA3AF; font-size: 11px; font-weight: 500;
+            transition: color 0.3s ease; cursor: pointer;
+        }
+        .nav-item.active { color: #0284C7; }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1); }
+        .nav-item.active .nav-icon { transform: translateY(-4px) scale(1.1); }
+        .page-view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .page-view.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .click-target { cursor: pointer; transition: all 0.2s; }
+        .click-target:active { transform: scale(0.95); }
+        .detail-tab.active { background-color: #0284C7; color: white; font-weight: bold; }
+        
+        /* CSF Game items */
+        .csf-box {
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body class="app-bg">
+
+    <!-- Top Header -->
+    <header class="pt-12 pb-6 px-6 bg-gradient-to-br from-[#0284C7] to-[#38BDF8] rounded-b-[40px] shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black text-white tracking-tight">神经系统解析</h1>
+            <p class="text-sky-100 mt-2 text-sm font-medium">神经中枢·内囊三偏·脑脊液循环：解剖与临床决策</p>
+        </div>
+        <div class="absolute right-[-20px] top-6 text-white/10 text-7xl font-black italic">NERVOUS</div>
+        <div class="absolute w-20 h-20 rounded-full bg-white/10 blur-xl top-0 left-10"></div>
+        <div class="absolute w-32 h-32 rounded-full bg-white/10 blur-2xl bottom-[-20px] right-[-20px]"></div>
+    </header>
+
+    <!-- ========== PAGE 1: Anatomy ========== -->
+    <main id="view-anatomy" class="page-view active px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-sky-600 rounded-full mr-2"></span>点击节点深度解析神经器官
+        </h2>
+        <div class="relative pl-2 pb-10">
+            <div class="timeline-line"></div>
+            <!-- Node 1: Spinal Cord -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(0)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-sky-100 flex-shrink-0">🩻</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">脊髓 (Spinal Cord)</h3>
+                    <p class="text-xs text-sky-600 font-bold mt-1 bg-sky-100 inline-block px-2 py-0.5 rounded-full">L1下缘下端·前角运动后角感觉·小儿麻痹症</p>
+                </div>
+            </div>
+            <!-- Node 2: Brainstem & Cerebellum -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(1)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-sky-100 flex-shrink-0">🧠</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">脑干与小脑</h3>
+                    <p class="text-xs text-indigo-600 font-bold mt-1 bg-indigo-100 inline-block px-2 py-0.5 rounded-full">延髓脑桥中脑·小脑维持平衡·枕骨大孔疝</p>
+                </div>
+            </div>
+            <!-- Node 3: Diencephalon & Internal Capsule -->
+            <div class="anatomy-node flex items-center mb-10 click-target" onclick="openNodeDetail(2)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-sky-100 flex-shrink-0">⚡</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">间脑与内囊</h3>
+                    <p class="text-xs text-sky-600 font-bold mt-1 bg-sky-100 inline-block px-2 py-0.5 rounded-full">丘脑中继站·下丘脑自律中枢·内囊偏瘫偏盲偏感</p>
+                </div>
+            </div>
+            <!-- Node 4: CSF Circulation -->
+            <div class="anatomy-node flex items-center click-target" onclick="openNodeDetail(3)">
+                <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl border-4 border-sky-100 flex-shrink-0">💧</div>
+                <div class="ml-5">
+                    <h3 class="font-black text-xl text-slate-800 tracking-tight">脑脊液及其循环</h3>
+                    <p class="text-xs text-emerald-600 font-bold mt-1 bg-emerald-100 inline-block px-2 py-0.5 rounded-full">脉络丛产生·室间孔水管·蛛网膜颗粒退化</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 2: Care Interactions ========== -->
+    <main id="view-care" class="page-view px-5 pt-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center">
+            <span class="w-1.5 h-5 bg-sky-600 rounded-full mr-2"></span>临床技能与情境互动
+        </h2>
+
+        <!-- Interaction 1: Internal Capsule Game -->
+        <div class="glass-panel p-5 mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-sky-700 text-lg">🕵️ 临床侦探：内囊“三偏”定位诊断</h3>
+                <span class="text-[10px] bg-red-100 text-red-800 px-2 py-1 rounded font-bold">急腹症鉴别</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">
+                王大爷，72岁，突发脑溢血送入医院。查体发现：<b>左侧偏身瘫痪、左侧全身皮肤痛温觉丧失、两眼视野左侧同向性偏盲</b>。
+            </p>
+
+            <div class="space-y-4">
+                <div>
+                    <div class="text-xs font-black text-slate-700 mb-2">Q1: 根据王大爷的“三偏”症状，其脑出血受损部位应该在哪一侧？</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="answerCapsule(1, 'L', this)" class="cap-q1 bg-white border border-slate-200 p-2.5 text-center rounded-xl text-xs font-bold text-slate-600 transition">
+                            左侧内囊
+                        </button>
+                        <button onclick="answerCapsule(1, 'R', this)" class="cap-q1 bg-white border border-slate-200 p-2.5 text-center rounded-xl text-xs font-bold text-slate-600 transition">
+                            右侧内囊
+                        </button>
+                    </div>
+                </div>
+
+                <div id="cap-part2" class="hidden">
+                    <div class="text-xs font-black text-slate-700 mb-2">Q2: 导致左侧偏身瘫痪（运动障碍）的原因是哪条神经纤维束在内囊受损？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerCapsule(2, 'A', this)" class="cap-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            A. 视辐射（视感觉传导）
+                        </button>
+                        <button onclick="answerCapsule(2, 'B', this)" class="cap-q2 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            B. 皮质脊髓束、皮质核束（下行运动传导）
+                        </button>
+                    </div>
+                </div>
+
+                <div id="cap-part3" class="hidden">
+                    <div class="text-xs font-black text-slate-700 mb-2">Q3: 导致左侧全身皮肤感觉丧失的原因是？</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="answerCapsule(3, 'A', this)" class="cap-q3 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            A. 丘脑中央辐射（上行感觉传导）在内囊后肢受损。
+                        </button>
+                        <button onclick="answerCapsule(3, 'B', this)" class="cap-q3 bg-white border border-slate-200 p-2.5 text-left rounded-xl text-xs font-bold text-slate-600 transition">
+                            B. 脊髓小脑束在大脑髓质内断裂。
+                        </button>
+                    </div>
+                </div>
+
+                <div id="cap-feedback" class="hidden p-3 rounded-xl text-xs font-medium leading-relaxed animate-pulse"></div>
+            </div>
+        </div>
+
+        <!-- Interaction 2: CSF flow Game -->
+        <div class="glass-panel p-5 mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-black text-sky-700 text-lg">💧 脑脊液循环：解密流动路径</h3>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-1 rounded font-bold">路径重建</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mb-4">脑脊液由脑室产生后，在脑室和蛛网膜下隙中定向循环，流回静脉。请按照正确的循环流动顺序依次点击下列结构：</p>
+
+            <!-- Target sequence indicator -->
+            <div class="bg-sky-50 rounded-xl p-3 border border-sky-100 text-center mb-4">
+                <div class="text-[10px] text-sky-600 font-bold">已成功流经结构：</div>
+                <div id="csf-track" class="text-xs font-black text-sky-800 mt-1">
+                    侧脑室 ➔ ...
+                </div>
+            </div>
+
+            <!-- Flow buttons pool -->
+            <div class="grid grid-cols-2 gap-2">
+                <button id="csf-b-1" onclick="flowCSF(1, '第三脑室')" class="csf-box bg-white border border-slate-200 p-2 text-center rounded-lg text-xs font-bold text-slate-700 transition">第三脑室</button>
+                <button id="csf-b-2" onclick="flowCSF(2, '中脑水管')" class="csf-box bg-white border border-slate-200 p-2 text-center rounded-lg text-xs font-bold text-slate-700 transition">中脑水管</button>
+                <button id="csf-b-3" onclick="flowCSF(3, '第四脑室')" class="csf-box bg-white border border-slate-200 p-2 text-center rounded-lg text-xs font-bold text-slate-700 transition">第四脑室</button>
+                <button id="csf-b-4" onclick="flowCSF(4, '室间孔')" class="csf-box bg-white border border-slate-200 p-2 text-center rounded-lg text-xs font-bold text-slate-700 transition">室间孔</button>
+                <button id="csf-b-5" onclick="flowCSF(5, '蛛网膜下隙')" class="csf-box bg-white border border-slate-200 p-2 text-center rounded-lg text-xs font-bold text-slate-700 transition">蛛网膜下隙</button>
+                <button id="csf-b-6" onclick="flowCSF(6, '蛛网膜颗粒')" class="csf-box bg-white border border-slate-200 p-2 text-center rounded-lg text-xs font-bold text-slate-700 transition">蛛网膜颗粒</button>
+            </div>
+            <div id="csf-feedback" class="hidden mt-3 p-3 rounded-xl text-xs font-medium text-center"></div>
+        </div>
+    </main>
+
+    <!-- ========== PAGE 3: Quiz ========== -->
+    <main id="view-quiz" class="page-view px-5 pt-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-black text-slate-800 flex items-center">
+                <span class="w-1.5 h-5 bg-sky-600 rounded-full mr-2"></span>神经系统测评
+            </h2>
+            <div class="bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-xs font-black shadow-inner">
+                得分 <span id="score-display" class="text-lg">0</span>/15
+            </div>
+        </div>
+        <div id="quiz-container" class="space-y-6"></div>
+    </main>
+
+    <!-- ========== BOTTOM SHEET (Node Detail) ========== -->
+    <div class="overlay" id="overlay" onclick="closeNodeDetail()"></div>
+    <div class="bottom-sheet" id="detail-sheet">
+        <div class="p-6">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div class="flex items-center mb-6">
+                <div id="modal-icon" class="text-4xl mr-4 bg-sky-50 w-16 h-16 flex items-center justify-center rounded-2xl"></div>
+                <div><h2 id="modal-title" class="text-2xl font-black text-slate-800"></h2></div>
+            </div>
+            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                <button onclick="switchModalTab('normal')" id="mtab-normal" class="detail-tab active flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">✅ 正常结构</button>
+                <button onclick="switchModalTab('aging')" id="mtab-aging" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">⚠️ 老年退化</button>
+                <button onclick="switchModalTab('care')" id="mtab-care" class="detail-tab flex-1 py-1.5 text-xs rounded-lg transition-colors text-slate-500">🛡️ 照护要点</button>
+            </div>
+            <div id="md-normal" class="modal-content-section"></div>
+            <div id="md-aging" class="modal-content-section hidden"></div>
+            <div id="md-care" class="modal-content-section hidden"></div>
+            <button onclick="closeNodeDetail()" class="mt-8 w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200 transition click-target">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <nav class="bottom-nav">
+        <div class="nav-item active click-target" onclick="switchNav('anatomy',this)"><span class="nav-icon mb-1">🩻</span><span>探索结构</span></div>
+        <div class="nav-item click-target" onclick="switchNav('care',this)"><span class="nav-icon mb-1">🎮</span><span>照护实操</span></div>
+        <div class="nav-item click-target" onclick="switchNav('quiz',this)"><span class="nav-icon mb-1">📝</span><span>答题测评</span></div>
+    </nav>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        /* === Navigation === */
+        function switchNav(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        /* === Anatomy Data === */
+        const anatomyData = [
+            {
+                icon: "🩻", title: "脊髓 (Spinal Cord)",
+                normal: "<b>1. 位置和外形</b>：位于椎管内，呈前后稍扁的圆柱形，全长粗细不匀，有两个膨大（颈膨大和腰骶膨大）。上端枕骨大孔处连延髓，下端成人平对<b>第1腰椎下缘</b>（新生儿平第3腰椎下缘）。<br><br><b>2. 内部结构</b>：<br>• <b>灰质</b>：呈H形。前角（含运动神经元，支配同侧骨骼肌）；后角（含感觉神经元）；侧角（仅见于T1-L3节段，为交感神经节前纤维细胞）。<br>• <b>白质</b>：薄束和楔束（同侧本体感觉和精细触觉）；脊髓丘脑侧束（对侧痛温觉）；皮质脊髓侧束（同侧运动下行控制）。",
+                aging: "老年人脊髓运动和感觉纤维数量逐年递减，传导速度明显变慢，肌梭和本体感受器敏感度下降。因此老年人下肢本体位置觉减退，易在失去平衡时出现判断偏差而跌倒。",
+                care: "<b>小儿麻痹症解剖考点</b>：脊髓前角运动神经元受病毒侵犯时，会导致支配肌肉的迟缓性瘫痪（无力、肌张力减退、腱反射消失、肌肉萎缩），但无感觉障碍。<br><br><b>老年防跌倒照护</b>：由于脊髓传导效率降低，照护长者时，在起立、转弯时动作应十分缓慢，防止本体位置觉反射迟缓而引起突然跌倒。"
+            },
+            {
+                icon: "🧠", title: "脑干与小脑",
+                normal: "<b>1. 脑干</b>：由下至上分为<b>延髓、脑桥、中脑</b>，位于颅后窝。含有脑神经核及心血管和呼吸调节生命中枢。滑车神经是唯一由脑干背侧面发出的脑神经。<br><br><b>2. 小脑</b>：位于小脑幕下方。分小脑蚓和两个小脑半球。内部含小脑核。功能包括：<br>• <b>前庭小脑</b>（原小脑）：维持身体平衡和眼外肌协同。<br>• <b>脊髓小脑</b>（旧小脑）：调节肌张力，协调精细运动。<br>• <b>大脑小脑</b>（新小脑）：筹划并控制熟练肌运动。",
+                aging: "小脑Purkinje细胞随年龄增长出现退行性变和脱落，运动精细化调节和协调能力降低。老年人平衡调节减弱，动作出现轻微震颤、步态摇晃或共济失调现象。",
+                care: "<b>脑疝临界考点</b>：小脑半球下方的<b>小脑扁桃体</b>紧邻枕骨大孔。若发生小脑扁桃体疝（枕骨大孔疝），由于小脑扁桃体挤压下方延髓，会直接压迫生命中枢，导致心跳呼吸骤停，随时危及生命，临床中必须极力预防颅内压急骤变化。"
+            },
+            {
+                icon: "⚡", title: "间脑与内囊 (Diencephalon)",
+                normal: "<b>1. 间脑</b>：位于大脑半球与脑干之间，分背侧丘脑、下丘脑、上丘脑、后丘脑。丘脑腹后核是全身除嗅觉外感觉向皮层传导的最后中继站；下丘脑是自主神经调节中枢。<br><br><b>2. 内囊 (Internal Capsule)</b>：位于丘脑、尾状核和豆状核之间的“V”或“><”型白质纤维板。分为前肢、膝部和后肢。后肢内含有大量感觉上行纤维（丘脑中央辐射）、运动下行纤维（皮质脊髓束）和视辐射。",
+                aging: "脑动脉硬化及高血压等容易在基底节区或内囊周围形成血管病变或微小动脉瘤，导致出血性或缺血性脑卒中高发，引起经典的内囊受损表现。",
+                care: "<b>内囊“三偏”症状</b>：一侧内囊受损会导致经典的“三偏”症状：<br>① <b>对侧偏瘫</b>：由于皮质脊髓束、皮质核束损伤导致。<br>② <b>对侧偏身感觉丧失</b>：由于丘脑中央辐射损伤。<br>③ <b>双眼对侧同向性偏盲</b>：由于视辐射受损。<br><br><b>偏瘫长者护理</b>：对于偏瘫长者，翻身和搬运时必须妥善保护偏瘫侧肢体，防关节脱位；协助长者穿衣时先穿患侧，脱衣时先脱健侧。"
+            },
+            {
+                icon: "💧", title: "脑脊液及其循环",
+                normal: "<b>1. 脑脊液 (CSF)</b>：由各脑室内的<b>脉络丛</b>产生。是一种无色透明的液体，起缓冲脑部和运输养分作用。<br><br><b>2. 循环路径</b>：侧脑室 ➔ <b>室间孔</b> ➔ 第三脑室 ➔ <b>中脑水管</b> ➔ 第四脑室 ➔ 正中孔和外侧孔 ➔ <b>蛛网膜下隙</b> ➔ <b>蛛网膜颗粒</b> ➔ 上矢状窦 ➔ 颈内静脉。",
+                aging: "老年人蛛网膜颗粒发生退化性改变，导致脑脊液的吸收速率显著降低。若生成与重吸收平衡失调，极易发生脑室扩大导致正常压力脑积水或梗阻性脑积水。",
+                care: "<b>脑脊液循环阻塞考点</b>：室间孔和中脑水管非常狭窄，是脑脊液循环最易发生梗阻的部位。若发生机械性梗阻会导致严重的脑积水。<br><br><b>老年性脑积水表现</b>：长者如出现步态不稳、认知障碍、尿失禁“三联征”，应警惕正常压力脑积水可能性，及时带长者检查。"
+            }
+        ];
+
+        /* === Game 1: Internal Capsule === */
+        function answerCapsule(qIndex, choice, btnEl) {
+            const fb = document.getElementById('cap-feedback');
+            fb.classList.remove('hidden');
+
+            if (qIndex === 1) {
+                if (choice === 'R') {
+                    btnEl.className = "cap-q1 bg-emerald-50 border border-emerald-500 text-emerald-700 p-2.5 text-center rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 诊断正确！</b>因为王大爷的偏瘫及感觉丧失均在【左侧】，根据神经纤维交叉传导原则，传导束在大脑交叉，受损的脑区必定在对侧，即【右侧内囊】。";
+                    document.getElementById('cap-part2').classList.remove('hidden');
+                } else {
+                    btnEl.className = "cap-q1 bg-red-50 border border-red-500 text-red-700 p-2.5 text-center rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 诊断错误。</b>神经传导具有交叉原则（对侧支配），左侧下肢偏瘫代表右侧大脑受损，因此病变在右侧内囊而非左侧。";
+                }
+            } else if (qIndex === 2) {
+                if (choice === 'B') {
+                    btnEl.className = "cap-q2 bg-emerald-50 border border-emerald-500 text-emerald-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>✅ 回答正确！</b>控制骨骼肌随意运动的主要是皮质脊髓束和皮质核束。该下行束损伤阻断了运动指令从大脑皮质运动区向脊髓前角的传导，从而导致偏瘫。";
+                    document.getElementById('cap-part3').classList.remove('hidden');
+                } else {
+                    btnEl.className = "cap-q2 bg-red-50 border border-red-500 text-red-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 答错了。</b>视辐射传导的是视觉信息，与骨骼肌的运动控制无关。引起瘫痪的是皮质脊髓束受损。";
+                }
+            } else if (qIndex === 3) {
+                if (choice === 'A') {
+                    btnEl.className = "cap-q3 bg-emerald-50 border border-emerald-500 text-emerald-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    fb.innerHTML = "<b>🎉 挑战成功！</b>丘脑中央辐射是连接丘脑腹后核（全身浅感觉中继）到中央后回（第一躯体感觉区）的特异性感觉投射纤维，在内囊后肢受损导致对侧全身皮肤感觉完全丧失。";
+                } else {
+                    btnEl.className = "cap-q3 bg-red-50 border border-red-500 text-red-700 p-2.5 text-left rounded-xl text-xs font-bold";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                    fb.innerHTML = "<b>❌ 答错了。</b>脊髓小脑束传导非意识性的本体感觉，主要到小脑，与大脑皮质产生皮肤痛温觉、粗触压觉无关。";
+                }
+            }
+        }
+
+        /* === Game 2: CSF Flow === */
+        const correctCSFSeq = ["室间孔", "第三脑室", "中脑水管", "第四脑室", "蛛网膜下隙", "蛛网膜颗粒"];
+        let csfStep = 0;
+
+        function flowCSF(btnId, name) {
+            const fb = document.getElementById('csf-feedback');
+            fb.classList.remove('hidden');
+
+            const nextTarget = correctCSFSeq[csfStep];
+            if (name === nextTarget) {
+                // Correct click
+                document.getElementById('csf-b-' + btnId).classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-800');
+                document.getElementById('csf-b-' + btnId).disabled = true;
+
+                csfStep++;
+                // Update track text
+                let track = "侧脑室";
+                for (let i = 0; i < csfStep; i++) {
+                    track += ` ➔ ${correctCSFSeq[i]}`;
+                }
+                document.getElementById('csf-track').innerText = track + " ➔ ...";
+
+                fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+                fb.innerHTML = `<b>正确！</b>脑脊液流经了【${name}】。`;
+
+                if (csfStep === correctCSFSeq.length) {
+                    document.getElementById('csf-track').innerText = track + " ➔ 颈内静脉";
+                    fb.className = "mt-3 p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-300";
+                    fb.innerHTML = "<b>🎉 循环建立成功！</b>脑脊液全部顺畅重吸收回流入上矢状窦静脉血，解密通关！";
+                }
+            } else {
+                // Wrong click
+                fb.className = "mt-3 p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200";
+                fb.innerHTML = `<b>循环受阻！</b>脑脊液在当前路径下无法直接流向【${name}】。提示：脑脊液是从侧脑室流出，下一步应流向哪里？`;
+            }
+        }
+
+        /* === Quiz Data === */
+        const quizData = [
+            { q: "1. 脊髓位于椎管内，成人的下端平对？", options: ["第1腰椎体下缘", "第3腰椎体下缘", "第5腰椎体下缘", "第1骶椎"], answer: 0, explanation: "成人脊髓下端平对第1腰椎体下缘（即L1下缘），而新生儿下端平对第3腰椎体下缘（L3）。临床上成人进行腰椎穿刺时常在L3/L4或L4/L5进行，确保不伤及脊髓。" },
+            { q: "2. 脊髓灰质的侧角内含有交感神经元，它仅存在于脊髓的哪些节段？", options: ["全部颈髓节段", "胸1至腰3节段", "腰4至骶4节段", "仅存在于骶髓节段"], answer: 1, explanation: "脊髓侧角是交感神经节前纤维胞体聚集处，仅存在于脊髓的胸1到腰3节段（T1~L3）。" },
+            { q: "3. 小儿麻痹症（急性脊髓前角灰质炎）病毒侵犯的脊髓结构主要是？", options: ["后角感觉神经元", "前角运动神经元", "白质薄束", "侧角自律神经元"], answer: 1, explanation: "脊髓前角运动神经元控制骨骼肌运动。脊髓前角灰质炎病毒损害前角运动细胞，导致弛缓性瘫痪（周围性瘫痪）而无感觉障碍。" },
+            { q: "4. 脊髓白质的上行纤维束中，薄束和楔束的主要功能是传导同侧半身的？", options: ["痛觉和温度觉", "本体感觉和精细触觉", "粗触觉和压觉", "内脏反射传入"], answer: 1, explanation: "薄束和楔束传导同侧半身的本体感觉（位置、运动、振动觉）和精细触觉（如两点辨别觉）。" },
+            { q: "5. 脊髓白质中，主要控制同侧上、下肢骨骼肌随意运动的纤维束是？", options: ["皮质脊髓前束", "皮质脊髓侧束", "脊髓丘脑侧束", "薄束"], answer: 1, explanation: "皮质脊髓侧束止于同侧前角运动细胞，控制同侧四肢骨骼肌随意运动。皮质脊髓前束控制双侧躯干肌的运动。" },
+            { q: "6. 脑干自下而上依次由哪些结构组成？", options: ["延髓、脑桥、中脑", "中脑、脑桥、延髓", "间脑、脑桥、中脑", "延髓、小脑、脑桥"], answer: 0, explanation: "脑干是连接大脑和脊髓的桥梁，自下而上依次是延髓、脑桥、中脑。" },
+            { q: "7. 脑干背侧面发出的脑神经中，滑车神经的独特特征是？", options: ["是唯一的混合性脑神经", "是唯一由脑干背侧面发出的脑神经", "支配眼球的内直肌", "穿过枕骨大孔进入椎管"], answer: 1, explanation: "滑车神经（CN IV）是十二对脑神经中唯一一个从脑干背侧面发出的脑神经，它向前绕行支配上斜肌。" },
+            { q: "8. 当颅内压骤增时，小脑扁桃体被挤压疝入枕骨大孔。它会直接压迫哪个结构危及生命？", options: ["中脑", "间脑", "延髓（含有呼吸及心血管生命中枢）", "第四脑室脉络丛"], answer: 2, explanation: "小脑扁桃体位于枕骨大孔上方，下邻延髓。发生枕骨大孔疝（小脑扁桃体疝）时，疝出组织会压迫延髓，由于延髓内有呼吸和心血管的生命中枢，因此会引发呼吸骤停危及生命。" },
+            { q: "9. 间脑中，被称为全身（除嗅觉外）浅深感觉向大脑皮质传导的最后中继站的是？", options: ["背侧丘脑（腹后核）", "下丘脑", "上丘脑", "后丘脑"], answer: 0, explanation: "背侧丘脑的腹后核是传导躯体和头面部浅深感觉至大脑皮质（中央后回）的特异性感觉中继核团。" },
+            { q: "10. 大脑皮质的第1躯体运动区位于半球表面的？", options: ["中央后回及中央旁小叶后部", "中央前回及中央旁小叶前部", "距状沟上下皮质", "颞横回"], answer: 1, explanation: "大脑皮质的第1躯体运动区位于中央前回和中央旁小叶前部，管理骨骼肌的随意运动。" },
+            { q: "11. 下列关于大脑皮质第1躯体运动区的投影特征，说法错误的是？", options: ["左侧半球支配右侧肢体运动（交叉支配）", "各投影区大小取决于控制运动的精准与复杂程度", "头部投影是倒置的", "肢体投影是倒置的"], answer: 2, explanation: "第1躯体运动区的投影特征包括：倒置的人形（但头部是正的，即口、眼部分不倒置）；交叉管理；投影区大小取决于功能复杂程度（例如双手和面部投影区极大，躯干投影区极小）。" },
+            { q: "12. 脑脊液由下列哪个结构产生？", options: ["各脑室脉络丛", "蛛网膜颗粒", "软脑膜毛细血管", "硬脑膜静脉窦"], answer: 0, explanation: "脑脊液主要是由各脑室内的脉络丛（由软脑膜、血管和室管膜上皮构成）产生并分泌的。" },
+            { q: "13. 脑脊液主要通过哪个结构回流进入硬脑膜静脉窦的静脉血液中？", options: ["室间孔", "蛛网膜颗粒", "中脑水管", "第四脑室正中孔"], answer: 1, explanation: "脑脊液经侧脑室➔第三脑室➔第四脑室➔蛛网膜下隙，最终通过突入上矢状窦的蛛网膜颗粒重吸收回流入静脉血循环。" },
+            { q: "14. 一侧内囊受损，患者出现经典的“三偏”症状，这些症状不包括？", options: ["对侧偏瘫", "对侧偏身感觉丧失", "双眼对侧同向性偏盲", "同侧偏瘫"], answer: 3, explanation: "内囊损伤引起“三偏”症状：①对侧偏瘫（皮质脊髓束、皮质核束损伤）；②对侧偏身感觉丧失（丘脑中央辐射损伤）；③对侧同向性偏盲（视辐射受损）。全部为对侧表现。" },
+            { q: "15. 脑溢血患者损伤内囊后肢，导致对侧偏瘫，其主要原因是损伤了哪条运动传导纤维？", options: ["脊髓丘脑侧束", "皮质脊髓束及皮质核束", "视辐射", "丘脑中央辐射"], answer: 1, explanation: "皮质脊髓束和皮质核束是下行的上运动神经元纤维，通过内囊膝部和后肢，其受损会直接阻断大脑对下位运动神经元的随意运动指令传导，从而导致对侧偏瘫。" }
+        ];
+
+        let score = 0;
+        let answered = Array(quizData.length).fill(false);
+
+        function buildQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = "";
+            quizData.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "glass-panel p-5";
+                
+                let optionsHTML = "";
+                item.options.forEach((opt, optIdx) => {
+                    optionsHTML += `
+                        <button onclick="checkAnswer(${idx}, ${optIdx}, this)" class="quiz-opt-${idx} w-full text-left bg-white border border-slate-200 p-3 rounded-xl text-xs font-bold text-slate-600 transition click-target mb-2 flex justify-between items-center">
+                            <span>${['A','B','C','D'][optIdx]}. ${opt}</span>
+                            <span class="feedback-icon text-sm"></span>
+                        </button>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <h3 class="font-black text-slate-800 text-sm mb-4 leading-relaxed">${item.q}</h3>
+                    <div class="options-group">${optionsHTML}</div>
+                    <div id="quiz-fb-${idx}" class="hidden mt-3 p-3 bg-sky-50 text-sky-800 rounded-xl text-[11px] font-medium leading-relaxed">
+                        <b>正确答案：${['A','B','C','D'][item.answer]}</b><br>
+                        ${item.explanation}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qIdx, optIdx, btnEl) {
+            if (answered[qIdx]) return;
+            answered[qIdx] = true;
+
+            const isCorrect = (optIdx === quizData[qIdx].answer);
+            const buttons = document.querySelectorAll(`.quiz-opt-${qIdx}`);
+            
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.add('opacity-70');
+                if (idx === quizData[qIdx].answer) {
+                    btn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-700');
+                    btn.querySelector('.feedback-icon').innerText = "✅";
+                }
+            });
+
+            if (!isCorrect) {
+                btnEl.classList.add('bg-red-50', 'border-red-500', 'text-red-700');
+                btnEl.querySelector('.feedback-icon').innerText = "❌";
+            } else {
+                score++;
+                document.getElementById('score-display').innerText = score;
+            }
+
+            document.getElementById(`quiz-fb-${qIdx}`).classList.remove('hidden');
+        }
+
+        /* === Init === */
+        window.onload = function() {
+            buildQuiz();
+        }
+    </script>
+</body>
+</html>
